@@ -6,7 +6,6 @@ from huggingface_hub import login
 import os
 
 # Load Hugging Face token from environment variable
-os.environ["HUGGINGFACE_TOKEN"] = "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"
 HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 if HF_TOKEN:
     login(token=HF_TOKEN)
