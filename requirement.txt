@@ -1,0 +1,5 @@
+transformers
+Flask
+torch
+openai
+huggingface_hub

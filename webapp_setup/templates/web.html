@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="w-full max-w-lg bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">Mental Health Chatbot</h2>
+        <div id="chat-box" class="h-80 overflow-y-auto border p-4 rounded-lg bg-gray-50 mb-4"></div>
+        <div class="flex">
+            <input id="user-input" type="text" placeholder="Type your message..." class="flex-1 p-2 border rounded-lg focus:outline-none">
+            <button onclick="sendMessage()" class="ml-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Send</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const userInput = document.getElementById("user-input").value;
+            if (!userInput.trim()) return;
+            
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML += `<div class='text-right mb-2'><span class='bg-blue-200 p-2 rounded-lg'>${userInput}</span></div>`;
+            document.getElementById("user-input").value = "";
+
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userInput })
+            });
+            
+            const data = await response.json();
+            chatBox.innerHTML += `<div class='text-left mb-2'><span class='bg-gray-200 p-2 rounded-lg'>${data.response}</span></div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
