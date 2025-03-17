@@ -3,3 +3,4 @@ Flask
 torch
 openai
 huggingface_hub
+FastAPI
