@@ -31,8 +31,9 @@ client = InferenceClient(
 
 # Attempt to load the local call model for fallback usage.
 try:
-    local_tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-1B")
-    local_model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-1B")
+    logger.info("Attempting to load local fallback model...")
+    local_tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct", token=HF_TOKEN)
+    local_model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-3B-Instruct", token=HF_TOKEN)
     logger.info("Local fallback model loaded successfully.")
 except Exception as e:
     logger.error(f"Failed to load local fallback model: {e}")
@@ -47,8 +48,10 @@ templates = Jinja2Templates(directory="/workspaces/MHRoberta-a-LLM-for-mental-he
 
 # Load mental health model (gated repo)
 try:
-    tokenizer = AutoTokenizer.from_pretrained("mental/mental-roberta-base", use_auth_token=HF_TOKEN)
-    model = AutoModelForMaskedLM.from_pretrained("mental/mental-roberta-base", use_auth_token=HF_TOKEN)
+    logger.info("Attempting to load mental health model...")
+    tokenizer = AutoTokenizer.from_pretrained("mental/mental-roberta-base", token=HF_TOKEN)
+    model = AutoModelForMaskedLM.from_pretrained("mental/mental-roberta-base", token=HF_TOKEN)
+    logger.info("Mental health model loaded successfully.")
 except Exception as e:
     raise RuntimeError(f"Failed to load mental health model: {e}")
 
@@ -158,4 +161,4 @@ async def chat(chat_request: ChatRequest, request: Request):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 if __name__ == "__main__":
-    uvicorn.run("chatbot:app", host="0.0.0.0", port=5000, reload=True)
+    uvicorn.run("chatbot:app", host="0.0.0.0", port=8000, reload=True)
