@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
-from transformers import AutoTokenizer, AutoModelForMaskedLM
+from transformers import AutoTokenizer, AutoModelForMaskedLM, AutoModelForCausalLM
 import torch
 import os
 import uvicorn
@@ -23,11 +23,21 @@ HF_INFERENCE_API_KEY = os.getenv("HF_INFERENCE_API_KEY")
 if not HF_INFERENCE_API_KEY:
     raise ValueError("Inference API key is missing. Set the environment variable HF_INFERENCE_API_KEY.")
 
-# Initialize the InferenceClient
+# Initialize the InferenceClient (client-based inference)
 client = InferenceClient(
     provider="nebius",  # Use the HyperBolic provider
     api_key=HF_INFERENCE_API_KEY,
 )
+
+# Attempt to load the local call model for fallback usage.
+try:
+    local_tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-1B")
+    local_model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-1B")
+    logger.info("Local fallback model loaded successfully.")
+except Exception as e:
+    logger.error(f"Failed to load local fallback model: {e}")
+    local_tokenizer = None
+    local_model = None
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -40,7 +50,7 @@ try:
     tokenizer = AutoTokenizer.from_pretrained("mental/mental-roberta-base", use_auth_token=HF_TOKEN)
     model = AutoModelForMaskedLM.from_pretrained("mental/mental-roberta-base", use_auth_token=HF_TOKEN)
 except Exception as e:
-    raise RuntimeError(f"Failed to load model: {e}")
+    raise RuntimeError(f"Failed to load mental health model: {e}")
 
 # Pydantic model for chat input validation
 class ChatRequest(BaseModel):
@@ -57,7 +67,8 @@ def detect_mental_state(text: str) -> str:
 def get_chatbot_response(mental_state: str, user_message: str) -> str:
     """
     Builds a few-shot prompt tailored to the detected mental state and
-    uses the Hugging Face InferenceClient to generate a response.
+    uses the client inference API to generate a response.
+    If the client inference fails, falls back to a local call model.
     """
     few_shot_examples = (
         "### Example 1:\n"
@@ -73,7 +84,7 @@ def get_chatbot_response(mental_state: str, user_message: str) -> str:
         "User: \"I feel angry and frustrated all the time.\"\n"
         "Assistant: \"It's okay to feel anger sometimes. Try to channel that energy into something creative or physical, and consider talking to someone about how you feel.\"\n\n"
     )
-
+    
     prompt = (
         f"{few_shot_examples}\n"
         f"Now, the user is experiencing {mental_state}.\n"
@@ -81,10 +92,11 @@ def get_chatbot_response(mental_state: str, user_message: str) -> str:
         "Assistant:"
     )
     logger.info(f"Generated prompt: {prompt}")
-
+    
     messages = [{"role": "user", "content": prompt}]
+    
+    # Try client inference first
     try:
-        # Use the InferenceClient with streaming; accumulate the response text.
         stream = client.chat.completions.create(
             model="meta-llama/Llama-3.2-3B-Instruct",
             messages=messages,
@@ -93,41 +105,53 @@ def get_chatbot_response(mental_state: str, user_message: str) -> str:
         )
         response_text = ""
         for chunk in stream:
-            # Accumulate text from each streaming chunk.
-            response_text += chunk.choices[0].delta.content
-        logger.info(f"Inference response: {response_text}")
+            # Check if content exists in the chunk before appending.
+            if hasattr(chunk.choices[0].delta, "content") and chunk.choices[0].delta.content:
+                response_text += chunk.choices[0].delta.content
+        logger.info(f"Client inference response: {response_text}")
         return response_text
     except Exception as e:
-        logger.error(f"Error in Inference API: {e}")
-        return "I'm sorry, I'm having trouble understanding you right now."
+        logger.error(f"Error in client inference: {e}. Falling back to local inference.")
+        if local_tokenizer is None or local_model is None:
+            logger.error("Local fallback model is not available.")
+            return "I'm sorry, I'm having trouble understanding you right now."
+        try:
+            local_inputs = local_tokenizer(prompt, return_tensors="pt")
+            local_outputs = local_model.generate(
+                local_inputs.input_ids,
+                max_length=300,            # Allow a longer output if necessary
+                do_sample=True,
+                temperature=0.7,           # Controls randomness; lower is more deterministic
+                top_k=50,
+                top_p=0.95,
+                early_stopping=True,       # Ends naturally if EOS token is produced
+                no_repeat_ngram_size=2,    # Helps avoid repetitive phrases
+                pad_token_id=local_tokenizer.eos_token_id,
+            )
+            local_response_text = local_tokenizer.decode(local_outputs[0], skip_special_tokens=True)
+            logger.info(f"Local inference response: {local_response_text}")
+            return local_response_text
+        except Exception as local_e:
+            logger.error(f"Error in local inference: {local_e}")
+            return "I'm sorry, I'm having trouble understanding you right now."
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    # Renders the landing page (or chatbot UI) template
     return templates.TemplateResponse("web.html", {"request": request})
 
 @app.get("/chatbot", response_class=HTMLResponse)
 async def chatbot_page(request: Request):
-    # Renders the chatbot UI template
     return templates.TemplateResponse("chatbot.html", {"request": request})
 
 @app.post("/api/chat")
-async def chat(request: Request):
+async def chat(chat_request: ChatRequest, request: Request):
     try:
-        data = await request.json()
-        logger.info(f"Received request data: {data}")
-
-        user_message = data.get("user_message", "").strip()
-        system_prompt = data.get("system_prompt", "").strip()
-        model_name = data.get("model_name", "").strip()
-        temperature = data.get("temperature", 0.7)
-
+        user_message = chat_request.message.strip()
         if not user_message:
             return JSONResponse(status_code=400, content={"error": "Message cannot be empty."})
-
+        
         mental_state = detect_mental_state(user_message)
         chatbot_response = get_chatbot_response(mental_state, user_message)
-
         return JSONResponse(content={"mental_state": mental_state, "response": chatbot_response})
     except Exception as e:
         logger.error(f"Error in /api/chat endpoint: {e}")
