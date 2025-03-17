@@ -25,33 +25,29 @@
     }
     /* Ensure message backgrounds do not span entire width */
     .message-container {
-      max-width: 60%; /* Adjusted max-width for message background */
+      max-width: 60%;
       word-wrap: break-word;
     }
   </style>
 </head>
 <body class="h-screen w-screen flex bg-calm-bg">
-
   <!-- Sidebar (initially visible) -->
   <aside id="sidebar" class="w-64 bg-cyan-700 text-white flex flex-col sidebar-visible fixed h-full z-20">
     <div class="p-4 border-b border-white">
       <h1 class="text-xl font-semibold">My MH Chatbot</h1>
     </div>
-
     <!-- Sidebar Buttons -->
     <div class="p-4 space-y-2">
       <button class="w-full text-left px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded" onclick="newChat()">New Chat</button>
       <button class="w-full text-left px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded" onclick="newPrompt()">New Prompt</button>
     </div>
-
     <!-- Chat History in Sidebar -->
     <div class="p-4 flex-1 overflow-y-auto">
       <h2 class="text-lg font-semibold mb-2">Recent Chats</h2>
       <ul id="chatHistoryList" class="space-y-2">
-        <!-- Populated dynamically -->
+        <!-- Sessions populated dynamically -->
       </ul>
     </div>
-
     <!-- Sidebar Footer Menu -->
     <div class="p-4 space-y-2 border-t border-white">
       <button class="w-full text-left px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded" onclick="importData()">Import Data</button>
@@ -77,9 +73,8 @@
         <div class="flex items-center space-x-2">
           <label for="modelSelect" class="text-gray-700 font-medium">Model:</label>
           <select id="modelSelect" class="border border-gray-300 rounded px-2 py-1">
-            <option value="meta-llama/Llama-3.2-1B">Llama-3.2-1B</option>
-            <option value="llama2-7b">Llama2-7b</option>
-            <option value="llama2-13b">Llama2-13b</option>
+            <option value="Local_Llama-3.2-3B-Instruct">Local_Llama-3.2-3B-Instruct</option>
+            <option value="inference_provider_Llama-3.2-3B-Instruct">inference_provider_Llama-3.2-3B-Instruct</option>
           </select>
         </div>
         <div class="flex items-center space-x-2">
@@ -112,7 +107,6 @@
     <footer class="p-4 bg-calm-accent border-t flex items-center">
       <input id="userInput" type="text" placeholder="Type a message or '/help'..." class="flex-1 border border-gray-300 rounded p-2 mr-2 focus:outline-none focus:border-green-500" />
       <button onclick="sendMessage()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-        <!-- Paper airplane icon for send -->
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block" fill="currentColor" viewBox="0 0 24 24">
           <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
         </svg>
@@ -122,8 +116,9 @@
 
   <!-- JavaScript for interactions -->
   <script>
-    // Global chat history array
-    let chatHistory = [];
+    // Global sessions array and current session object
+    let sessions = [];
+    let currentSession = { name: "Session 1", messages: [] };
 
     // Toggle sidebar using hamburger icon
     function toggleSidebar() {
@@ -136,14 +131,17 @@
       } else {
         sidebar.classList.remove('sidebar-hidden');
         sidebar.classList.add('sidebar-visible');
-        mainContent.style.marginLeft = '16rem'; // 64 * 0.25rem
+        mainContent.style.marginLeft = '16rem';
       }
     }
 
-    // Start a new chat session: reset chat area and history
+    // Start a new chat session: save current session and reset chat area
     function newChat() {
-      alert("Starting a new chat session.");
-      chatHistory = [];
+      if (currentSession.messages.length > 0) {
+        sessions.push(currentSession);
+      }
+      const newSessionNumber = sessions.length + 1;
+      currentSession = { name: "Session " + newSessionNumber, messages: [] };
       const chatArea = document.getElementById('chatArea');
       chatArea.innerHTML = `
         <div class="mb-4">
@@ -161,10 +159,13 @@
       alert("New prompt functionality coming soon.");
     }
 
-    // Open an existing chat session (placeholder)
-    function openChat(sessionName) {
-      alert("Loading session: " + sessionName);
-      // Load session-specific chat history here if available.
+    // Open an existing chat session: load its chat history into the chat area
+    function openChat(session) {
+      const chatArea = document.getElementById('chatArea');
+      chatArea.innerHTML = "";
+      session.messages.forEach(msg => {
+        appendMessage(msg.role === 'user' ? "You" : "Assistant", msg.message, msg.role === 'user' ? "right" : "left");
+      });
     }
 
     // Import data functionality (placeholder)
@@ -172,13 +173,14 @@
       alert("Import Data functionality coming soon.");
     }
 
-    // Export chat history as a JSON file
+    // Export all sessions as a JSON file
     function exportData() {
-      if (chatHistory.length === 0) {
+      if (sessions.length === 0 && currentSession.messages.length === 0) {
         alert("No chat history to export.");
         return;
       }
-      const dataStr = JSON.stringify(chatHistory, null, 2);
+      const allSessions = sessions.concat(currentSession);
+      const dataStr = JSON.stringify(allSessions, null, 2);
       const blob = new Blob([dataStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -189,31 +191,38 @@
       document.body.removeChild(a);
     }
 
-    // Update the sidebar chat history list
+    // Update the sidebar chat history list with saved sessions and the current session (if any messages exist)
     function updateChatHistoryList() {
       const listEl = document.getElementById('chatHistoryList');
       listEl.innerHTML = "";
-      chatHistory.forEach((chat, index) => {
+      sessions.forEach(session => {
         const li = document.createElement("li");
         li.className = "px-3 py-2 bg-primary-cyan rounded hover:bg-opacity-90 cursor-pointer";
-        li.textContent = `Session ${index + 1}: ${chat.role === 'user' ? chat.message.substring(0, 20) : "Chat"}`;
-        li.onclick = () => openChat(`Session ${index + 1}`);
+        li.textContent = session.name;
+        li.onclick = () => openChat(session);
         listEl.appendChild(li);
       });
+      if (currentSession.messages.length > 0) {
+        const li = document.createElement("li");
+        li.className = "px-3 py-2 bg-primary-cyan rounded hover:bg-opacity-90 cursor-pointer";
+        li.textContent = currentSession.name + " (current)";
+        li.onclick = () => openChat(currentSession);
+        listEl.appendChild(li);
+      }
     }
 
-    // Append a message to the chat area with proper formatting and width constraints
+    // Append a message to the chat area with formatting
     function appendMessage(sender, message, align = "left", isError = false) {
       const chatArea = document.getElementById('chatArea');
       const msgDiv = document.createElement('div');
       msgDiv.className = `mb-4 text-${align}`;
       
-      // Convert **bold** markdown to HTML <strong> and preserve line breaks.
+      // Basic markdown formatting: **bold** and line breaks
       let formattedMessage = message
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, "<br>");
       
-      // Convert numbered list items to HTML list items
+      // Convert numbered lists if present
       formattedMessage = formattedMessage.replace(/(\d+)\.\s(.+?)(?=\n|$)/g, '<li><strong>$1.</strong> $2</li>');
       if (formattedMessage.includes("<li>")) {
         formattedMessage = "<ul class='list-disc pl-5'>" + formattedMessage + "</ul>";
@@ -229,12 +238,12 @@
       chatArea.scrollTop = chatArea.scrollHeight;
     }
 
-    // Add message to chat history array
+    // Add a message to the current session history
     function addToHistory(messageObj) {
-      chatHistory.push(messageObj);
+      currentSession.messages.push(messageObj);
     }
 
-    // Send message to the backend
+    // Send message to the backend and update the conversation
     async function sendMessage() {
       const userInputEl = document.getElementById('userInput');
       const systemPromptEl = document.getElementById('systemPrompt');
