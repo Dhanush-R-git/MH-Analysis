@@ -24,13 +24,9 @@
       transition: transform 0.3s ease;
     }
     /* Limit message width */
-    @media (min-width: 768px) {
-      .message-container {
-        max-width: 90%;
-      }
-      #mainContent {
-        margin-left: 0 !important
-      }
+    .message-container {
+      max-width: 60%;
+      word-wrap: break-word;
     }
   </style>
 </head>
@@ -38,7 +34,7 @@
   <!-- Sidebar -->
   <aside id="sidebar" class="w-64 bg-cyan-700 text-white flex flex-col sidebar-visible fixed h-full z-20">
     <div class="p-4 border-b border-white">
-      <h1 class="text-xl font-semibold">MentaChat</h1>
+      <h1 class="text-xl font-semibold">MaṉaChat</h1>
     </div>
     <!-- Sidebar Buttons -->
     <div class="p-4 space-y-2">
@@ -64,8 +60,8 @@
     <!-- Header with Home and overview link and sidebar toggle -->
     <header class="p-4 border-b bg-calm-accent flex items-center justify-between">
       <div class="flex items-center space-x-4">
-        <a href="/" class="text-xl font-semibold text-gray-800 hover:underline">Home</a>
-        <a href="/" class="text-xl font-semibold text-gray-800 hover:underline">Overview</a>
+        <a href="/web" class="text-xl font-semibold text-gray-800 hover:underline">Home</a>
+        <a href="/Overview" class="text-xl font-semibold text-gray-800 hover:underline">Overview</a>
         <button onclick="toggleSidebar()" class="p-2 rounded hover:bg-gray-200">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
