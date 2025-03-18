@@ -1,4 +1,4 @@
-# Mental Health Analysis
+# Maṉa
 
 This project focuses on leveraging machine learning and natural language processing (NLP) techniques to analyze mental health-related text data. It includes a fine-tuned version of the Roberta transformer model, named MHRoberta, specifically designed for mental health analysis tasks. The model is trained using the PEFT (Parameter-Efficient Fine-Tuning) method on a mental health dataset.
 
