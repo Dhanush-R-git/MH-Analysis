@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mental Health Landing Page</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-white text-gray-800">
@@ -36,16 +35,13 @@
     </div>
   </div>
 
-  <!-- Main navigation -->
+  <!-- Navigation -->
   <nav class="bg-white shadow">
     <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-      <!-- Logo or Site Name -->
       <a href="#" class="text-2xl font-bold text-blue-600">Reveal</a>
-
-      <!-- Navigation Links -->
       <div class="hidden md:flex space-x-6">
         <a href="#" class="text-gray-600 hover:text-gray-900">Home</a>
-        <a href="#" class="text-gray-600 hover:text-gray-900">About our Project</a>
+        <a href="/project_overview" class="text-gray-600 hover:text-gray-900">About Project</a>
         <a href="#" class="text-gray-600 hover:text-gray-900">Portfolio</a>
         <a href="#" class="text-gray-600 hover:text-gray-900">Team</a>
       </div>
@@ -53,42 +49,36 @@
   </nav>
 
   <!-- Hero Section -->
-  <section
-    class="relative flex items-center justify-center bg-cover bg-center"
-    style="background-image: url('https://images.unsplash.com/photo-1495314736024-fa88f6b5571b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'); height: 70vh;"
-  >
+  <section class="relative flex items-center justify-center bg-cover bg-center"
+    style="background-image: url('https://images.unsplash.com/photo-1495314736024-fa88f6b5571b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'); height: 70vh;">
     <div class="absolute inset-0 bg-white bg-opacity-50"></div>
     <div class="relative z-10 text-center px-4">
       <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-        Make your <span class="text-green-600">Mental Health</span> Well being!
+        Know your <span class="text-green-600">Mental Health</span> Well-being!
       </h1>
       <p class="text-lg text-gray-700 max-w-2xl mx-auto mb-8">
         Take a step towards a healthier mind and a happier life. We offer support
         and resources to help you navigate mental health challenges.
       </p>
       <div class="flex justify-center space-x-4">
-        <!-- Link to your chatbot route (e.g., /chatbot) -->
-        <a
-          href="/chatbot"
-          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
+        <a href="/project_overview"
+          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
           Get Started
         </a>
-        <a
-          href="#"
-          class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-        >
-          Our Projects
-        </a>
+        <a href="#"
+          class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+          Our Research
+          </a>
       </div>
     </div>
   </section>
 
-  <!-- Footer (Optional) -->
+  <!-- Footer -->
   <footer class="bg-gray-200 py-4 mt-8">
     <div class="container mx-auto px-4 text-center text-gray-600">
       &copy; 2025 Reveal. All rights reserved.
     </div>
   </footer>
+
 </body>
 </html>

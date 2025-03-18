@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My MH Chatbot UI</title>
+  <title>MentaChatbot</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Custom calming colors: light green & sky blue cyan */
+    /* Calming colors */
     :root {
       --primary-green: #A7F3D0;  /* light green */
       --primary-cyan: #67E8F9;   /* sky blue cyan */
@@ -23,32 +23,36 @@
       transform: translateX(0);
       transition: transform 0.3s ease;
     }
-    /* Ensure message backgrounds do not span entire width */
-    .message-container {
-      max-width: 60%;
-      word-wrap: break-word;
+    /* Limit message width */
+    @media (min-width: 768px) {
+      .message-container {
+        max-width: 90%;
+      }
+      #mainContent {
+        margin-left: 0 !important
+      }
     }
   </style>
 </head>
 <body class="h-screen w-screen flex bg-calm-bg">
-  <!-- Sidebar (initially visible) -->
+  <!-- Sidebar -->
   <aside id="sidebar" class="w-64 bg-cyan-700 text-white flex flex-col sidebar-visible fixed h-full z-20">
     <div class="p-4 border-b border-white">
-      <h1 class="text-xl font-semibold">My MH Chatbot</h1>
+      <h1 class="text-xl font-semibold">MentaChat</h1>
     </div>
     <!-- Sidebar Buttons -->
     <div class="p-4 space-y-2">
       <button class="w-full text-left px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded" onclick="newChat()">New Chat</button>
       <button class="w-full text-left px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded" onclick="newPrompt()">New Prompt</button>
     </div>
-    <!-- Chat History in Sidebar -->
+    <!-- Chat History -->
     <div class="p-4 flex-1 overflow-y-auto">
       <h2 class="text-lg font-semibold mb-2">Recent Chats</h2>
       <ul id="chatHistoryList" class="space-y-2">
         <!-- Sessions populated dynamically -->
       </ul>
     </div>
-    <!-- Sidebar Footer Menu -->
+    <!-- Sidebar Footer -->
     <div class="p-4 space-y-2 border-t border-white">
       <button class="w-full text-left px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded" onclick="importData()">Import Data</button>
       <button class="w-full text-left px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded" onclick="exportData()">Export Data</button>
@@ -57,11 +61,11 @@
 
   <!-- Main Content -->
   <div id="mainContent" class="flex-1 flex flex-col ml-64 transition-all duration-300">
-    <!-- Header with Home link and sidebar toggle icon -->
+    <!-- Header with Home and overview link and sidebar toggle -->
     <header class="p-4 border-b bg-calm-accent flex items-center justify-between">
       <div class="flex items-center space-x-4">
         <a href="/" class="text-xl font-semibold text-gray-800 hover:underline">Home</a>
-        <!-- Hamburger icon for sidebar toggle -->
+        <a href="/" class="text-xl font-semibold text-gray-800 hover:underline">Overview</a>
         <button onclick="toggleSidebar()" class="p-2 rounded hover:bg-gray-200">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -74,7 +78,7 @@
           <label for="modelSelect" class="text-gray-700 font-medium">Model:</label>
           <select id="modelSelect" class="border border-gray-300 rounded px-2 py-1">
             <option value="Local_Llama-3.2-3B-Instruct">Local_Provider</option>
-            <option value="inference_provider_Llama-3.2-3B-Instruct">inference_provider</option>
+            <option value="inference_provider">Inference_Provider</option>
           </select>
         </div>
         <div class="flex items-center space-x-2">
@@ -89,12 +93,11 @@
       </div>
     </header>
 
-    <!-- Hidden system prompt (default used by backend) -->
+    <!-- Hidden system prompt -->
     <input type="hidden" id="systemPrompt" value="You are a mental health chatbot. Provide empathetic and supportive responses using markdown." />
 
     <!-- Chat Area -->
     <main id="chatArea" class="flex-1 p-4 overflow-y-auto bg-white">
-      <!-- Initial system message -->
       <div class="mb-4">
         <div class="text-sm text-gray-500 mb-1">System:</div>
         <div class="message-container inline-block bg-green-200 text-gray-800 p-3 rounded-lg whitespace-pre-wrap">
@@ -120,7 +123,7 @@
     let sessions = [];
     let currentSession = { name: "Session 1", messages: [] };
 
-    // Toggle sidebar using hamburger icon
+    // Toggle sidebar
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar');
       const mainContent = document.getElementById('mainContent');
@@ -135,7 +138,7 @@
       }
     }
 
-    // Start a new chat session: save current session and reset chat area
+    // Start a new chat session
     function newChat() {
       if (currentSession.messages.length > 0) {
         sessions.push(currentSession);
@@ -154,12 +157,12 @@
       updateChatHistoryList();
     }
 
-    // New prompt functionality (placeholder)
+    // New prompt (placeholder)
     function newPrompt() {
       alert("New prompt functionality coming soon.");
     }
 
-    // Open an existing chat session: load its chat history into the chat area
+    // Open existing session
     function openChat(session) {
       const chatArea = document.getElementById('chatArea');
       chatArea.innerHTML = "";
@@ -168,12 +171,12 @@
       });
     }
 
-    // Import data functionality (placeholder)
+    // Import data (placeholder)
     function importData() {
       alert("Import Data functionality coming soon.");
     }
 
-    // Export all sessions as a JSON file
+    // Export all sessions as JSON
     function exportData() {
       if (sessions.length === 0 && currentSession.messages.length === 0) {
         alert("No chat history to export.");
@@ -191,7 +194,7 @@
       document.body.removeChild(a);
     }
 
-    // Update the sidebar chat history list with saved sessions and the current session (if any messages exist)
+    // Update sidebar chat history list
     function updateChatHistoryList() {
       const listEl = document.getElementById('chatHistoryList');
       listEl.innerHTML = "";
@@ -211,23 +214,20 @@
       }
     }
 
-    // Append a message to the chat area with formatting
+    // Append a message with markdown formatting
     function appendMessage(sender, message, align = "left", isError = false) {
       const chatArea = document.getElementById('chatArea');
       const msgDiv = document.createElement('div');
       msgDiv.className = `mb-4 text-${align}`;
       
-      // Basic markdown formatting: **bold** and line breaks
       let formattedMessage = message
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, "<br>");
-      
-      // Convert numbered lists if present
       formattedMessage = formattedMessage.replace(/(\d+)\.\s(.+?)(?=\n|$)/g, '<li><strong>$1.</strong> $2</li>');
       if (formattedMessage.includes("<li>")) {
         formattedMessage = "<ul class='list-disc pl-5'>" + formattedMessage + "</ul>";
       }
-
+      
       msgDiv.innerHTML = `
         <div class="text-sm text-gray-500 mb-1">${sender}:</div>
         <div class="message-container inline-block ${isError ? 'bg-red-100' : (sender === 'You' ? 'bg-green-200' : 'bg-green-100')} text-gray-800 p-3 rounded-lg whitespace-pre-wrap">
@@ -238,12 +238,12 @@
       chatArea.scrollTop = chatArea.scrollHeight;
     }
 
-    // Add a message to the current session history
+    // Add message to current session history
     function addToHistory(messageObj) {
       currentSession.messages.push(messageObj);
     }
 
-    // Send message to the backend and update the conversation
+    // Send message to backend
     async function sendMessage() {
       const userInputEl = document.getElementById('userInput');
       const systemPromptEl = document.getElementById('systemPrompt');

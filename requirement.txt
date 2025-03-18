@@ -1,6 +1,7 @@
 transformers
 Flask
 torch
-openai
 huggingface_hub
-FastAPI
+fastAPI
+pydantic
+uvicorn
