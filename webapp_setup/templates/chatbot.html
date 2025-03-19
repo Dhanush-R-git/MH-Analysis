@@ -30,6 +30,7 @@
     }
   </style>
 </head>
+
 <body class="h-screen w-screen flex bg-calm-bg">
   <!-- Sidebar -->
   <aside id="sidebar" class="w-64 bg-cyan-700 text-white flex flex-col sidebar-visible fixed h-full z-20">
@@ -71,10 +72,10 @@
       <!-- Model and Temperature Controls -->
       <div class="flex items-center space-x-4">
         <div class="flex items-center space-x-2">
-          <label for="modelSelect" class="text-gray-700 font-medium">Model:</label>
+          <label for="modelSelect" class="text-gray-700 font-medium">Model</label>
           <select id="modelSelect" class="border border-gray-300 rounded px-2 py-1">
-            <option value="Local_Llama-3.2-3B-Instruct">Local_Provider</option>
-            <option value="inference_provider">Inference_Provider</option>
+            <option value="Local-Provider">Local-Provider</option>
+            <option value="Inference-Provider">Inference-Provider</option>
           </select>
         </div>
         <div class="flex items-center space-x-2">
@@ -263,22 +264,48 @@
         model_name: selectedModel,
         temperature: temperature
       };
-
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        if (!response.ok) {
-          throw new Error(`Server Error: ${response.status}`);
-        }
+        
         const data = await response.json();
-        appendMessage("Assistant", data.response, "left");
-        addToHistory({ role: "assistant", message: data.response });
+        
+        if (!response.ok) {
+          throw new Error(data.error || `Server error: ${response.status}`);
+        }
+        
+        if (data.response.startsWith("⚠️")) {
+          appendMessage("Error", data.response, "left", true);
+        } 
+        else {
+          appendMessage("Assistant", data.response, "left");
+          addToHistory({ role: "assistant", message: data.response });
+        }
         updateChatHistoryList();
-      } catch (error) {
+      }
+      catch (error) {
         appendMessage("Error", error.message, "left", true);
+      }
+    }
+    // Add to your JavaScript
+    async function checkModelStatus() {
+      const modelSelect = document.getElementById('modelSelect');
+      const statusIndicator = document.createElement('span');
+      statusIndicator.className = 'ml-2 w-3 h-3 rounded-full';
+      modelSelect.parentNode.appendChild(statusIndicator);
+
+      try {
+        const res = await fetch('/api/model-status');
+        const status = await res.json();
+        
+        statusIndicator.style.backgroundColor = 
+          status[modelSelect.value] ? '#10B981' : '#EF4444';
+        
+      } catch {
+        statusIndicator.style.backgroundColor = '#EF4444';
       }
     }
   </script>

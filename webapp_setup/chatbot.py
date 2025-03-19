@@ -1,19 +1,30 @@
-from fastapi import FastAPI, Request, HTTPException, Response
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, Request, HTTPException, Response # type: ignore
+from fastapi.responses import HTMLResponse, JSONResponse # type: ignore
 from transformers import AutoTokenizer, AutoModelForMaskedLM, AutoModelForCausalLM
-import torch
+import torch # type: ignore
 import os
-import uvicorn
-from pydantic import BaseModel
-from fastapi.templating import Jinja2Templates
+import uvicorn # type: ignore
+from pydantic import BaseModel  # type: ignore
+from fastapi.templating import Jinja2Templates # type: ignore
 import logging
-from huggingface_hub import InferenceClient
+from huggingface_hub import InferenceClient # type: ignore
+import asyncio
+
+# Configuration (externalized via environment variables)
+LOCAL_MODEL_NAME = os.getenv("LOCAL_MODEL_NAME", "meta-llama/Llama-3.2-3B-Instruct")
+MENTAL_MODEL_NAME = os.getenv("MENTAL_MODEL_NAME", "mental/mental-roberta-base")
+LOCAL_MAX_NEW_TOKENS = int(os.getenv("LOCAL_MAX_NEW_TOKENS", 100))
+INFERENCE_MAX_NEW_TOKENS = int(os.getenv("INFERENCE_MAX_NEW_TOKENS", 200))
+LOCAL_TOP_K = int(os.getenv("LOCAL_TOP_K", 50))
+LOCAL_TOP_P = float(os.getenv("LOCAL_TOP_P", 0.95))
+LOCAL_NO_REPEAT_NGRAM_SIZE = int(os.getenv("LOCAL_NO_REPEAT_NGRAM_SIZE", 2))
+LOCAL_TRUNCATION_LENGTH = int(os.getenv("LOCAL_TRUNCATION_LENGTH", 400))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load environment variables
+# Load environment variables for Hugging Face tokens
 HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 if not HF_TOKEN:
     raise ValueError("Hugging Face token is missing. Set the environment variable HUGGINGFACE_TOKEN.")
@@ -22,61 +33,71 @@ HF_INFERENCE_API_KEY = os.getenv("HF_INFERENCE_API_KEY")
 if not HF_INFERENCE_API_KEY:
     raise ValueError("Inference API key is missing. Set the environment variable HF_INFERENCE_API_KEY.")
 
-# Initialize the InferenceClient
+# Initialize the InferenceClient for cloud inference
 client = InferenceClient(api_key=HF_INFERENCE_API_KEY)
 
-# Attempt to load local fallback model
-try:
-    logger.info("Attempting to load local fallback model...")
-    local_tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-1B-Instruct", token=HF_TOKEN)
-    local_model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-1B-Instruct", token=HF_TOKEN)
-    logger.info("Local fallback model loaded successfully.")
-except Exception as e:
-    logger.error(f"Failed to load local fallback model: {e}")
-    local_tokenizer, local_model = None, None
-
-# Initialize FastAPI app
+# Initialize FastAPI app and Jinja2 templates
 app = FastAPI()
+templates = Jinja2Templates(directory="D:/project-main/Final-year-projects/Project-Laboratory/MH-Analysis/webapp_setup/templates")
 
-# Set up Jinja2 templates
-templates = Jinja2Templates(directory="/workspaces/MHRoberta-a-LLM-for-mental-health-analysis/webapp_setup/templates")
+# Global variables for lazy-loading the local model
+local_model = None
+local_tokenizer = None
 
-# Load mental health model
+def load_local_model():
+    """Lazy loads the local model and tokenizer if not already loaded."""
+    global local_model, local_tokenizer
+    if local_model is None or local_tokenizer is None:
+        try:
+            logger.info("Lazy loading local model...")
+            local_tokenizer = AutoTokenizer.from_pretrained(LOCAL_MODEL_NAME, token=HF_TOKEN)
+            local_model = AutoModelForCausalLM.from_pretrained(LOCAL_MODEL_NAME, token=HF_TOKEN)
+            logger.info("Local fallback model loaded successfully with offloading.")
+        except Exception as e:
+            logger.exception("Failed to load local fallback model")
+            raise RuntimeError("Local model not available")
+    return local_model, local_tokenizer
+
+# Load mental health model at startup (always loaded)
 try:
-    logger.info("Attempting to load mental health model...")
-    tokenizer = AutoTokenizer.from_pretrained("mental/mental-roberta-base", token=HF_TOKEN)
-    model = AutoModelForMaskedLM.from_pretrained("mental/mental-roberta-base", token=HF_TOKEN)
+    logger.info("Loading mental health model...")
+    mental_tokenizer = AutoTokenizer.from_pretrained(MENTAL_MODEL_NAME, token=HF_TOKEN)
+    mental_model = AutoModelForMaskedLM.from_pretrained(MENTAL_MODEL_NAME, token=HF_TOKEN)
     logger.info("Mental health model loaded successfully.")
 except Exception as e:
+    logger.exception("Failed to load mental health model")
     raise RuntimeError(f"Failed to load mental health model: {e}")
 
-# Pydantic model for validating incoming chat requests
 class ChatRequest(BaseModel):
     user_message: str
     system_prompt: str
     model_name: str
     temperature: float
 
-def detect_mental_state(text: str) -> str:
+def detect_mental_state(user_message: str) -> str:
     """Detect mental state using the mental health model."""
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+    inputs = mental_tokenizer(user_message, return_tensors="pt", truncation=True, padding=True)
     with torch.no_grad():
-        outputs = model(**inputs)
-    
+        outputs = mental_model(**inputs)
+    # Process logits to derive a mental state (customize as needed)
     logits = outputs.logits[:, :-1, :].mean(dim=1)
     probs = torch.nn.functional.softmax(logits, dim=-1)
     predicted_token_id = torch.argmax(probs, dim=-1)
-
-    mental_state = tokenizer.decode(predicted_token_id)
+    mental_state = mental_tokenizer.decode(predicted_token_id)
     return mental_state
 
-def get_chatbot_response(mental_state: str, user_message: str, system_prompt: str, model_choice: str, temperature: float) -> str:
+def get_chatbot_response(mental_state: str, user_message: str, 
+                        system_prompt: str, model_name: str, 
+                        temperature: float) -> str:
     """Generate a chatbot response based on mental state and user input."""
     system_instruction = """
 You are a compassionate and supportive mental health chatbot. Your goal is to provide empathetic, actionable advice to help users manage their emotional challenges.
 """
-    
     few_shot_examples = """
+### Example 0:
+User: "Hi or Hello"
+Assistant: "Hello! How can I support you today?"
+
 ### Example 1:
 [Condition: sadness]
 User: "I feel angry and frustrated all the time."
@@ -106,80 +127,74 @@ Assistant: "I'm sorry you're feeling this way. You might find it helpful to enga
 - Express empathy and understanding.
 - Suggest small, achievable actions the user can take.
 - Avoid forcing positivity; instead, gently encourage self-care.
-
 """
-
     conversation_prompt = f"""
 {system_instruction}
 {system_prompt}
 
 {few_shot_examples}
-### New Conversation:
+**New Conversation:
 
 [Condition: {mental_state}]
 User: "{user_message}"
 Assistant:
-    
+
 """
-
-    messages = [{"role": "user", "content": conversation_prompt}]
-
     generated = ""
-    if model_choice == "inference_provider":
-        try:
+    error = None
+    try:
+        if model_name == "Inference-Provider":
             response_text = client.text_generation(
-                model="meta-llama/Llama-3.2-3B-Instruct",
+                model=LOCAL_MODEL_NAME,
                 prompt=conversation_prompt,
-                max_new_tokens=200,
+                max_new_tokens=INFERENCE_MAX_NEW_TOKENS,
                 temperature=temperature
             )
             generated = response_text.strip()
             logger.info(f"Inference Provider Response:\n{generated}")
-        except Exception as e:
-            logger.error(f"Error in inference provider: {e}, switching to local model.")
-    
-    if not generated and local_tokenizer and local_model:
-        try:
-            # Ensure the tokenizer has a padding token
-            if local_tokenizer.pad_token is None:
-                local_tokenizer.pad_token = local_tokenizer.eos_token
-            
-            local_inputs = local_tokenizer(
+        elif model_name == "Local-Provider":
+            try:
+                local_model_loaded, local_tokenizer_loaded = load_local_model()
+            except Exception as e:
+                logger.exception("Local model error")
+                return "I'm sorry, I'm having trouble understanding you right now."
+                
+            if local_tokenizer_loaded.pad_token is None:
+                local_tokenizer_loaded.pad_token = local_tokenizer_loaded.eos_token
+            local_inputs = local_tokenizer_loaded(
                 conversation_prompt, 
                 return_tensors="pt", 
                 padding=True, 
                 truncation=True, 
-                max_length=400
+                max_length=LOCAL_TRUNCATION_LENGTH
             )
-            local_outputs = local_model.generate(
+            local_outputs = local_model_loaded.generate(
                 input_ids=local_inputs.input_ids,
                 attention_mask=local_inputs.attention_mask,
-                max_new_tokens=100,  # Controls the length of the generated output
+                max_new_tokens=LOCAL_MAX_NEW_TOKENS,
                 do_sample=True,
                 temperature=temperature,
-                top_k=50,
-                top_p=0.95,
-                no_repeat_ngram_size=2,
-                pad_token_id=local_tokenizer.eos_token_id
+                top_k=LOCAL_TOP_K,
+                top_p=LOCAL_TOP_P,
+                no_repeat_ngram_size=LOCAL_NO_REPEAT_NGRAM_SIZE,
+                pad_token_id=local_tokenizer_loaded.eos_token_id
             )
-            generated = local_tokenizer.decode(local_outputs[0], skip_special_tokens=True).strip()
+            generated = local_tokenizer_loaded.decode(local_outputs[0], skip_special_tokens=True).strip()
             logger.info(f"Local Model Response:\n{generated}")
-        except Exception as e:
-            logger.error(f"Error in local inference: {e}")
-            return "I'm sorry, I'm having trouble understanding you right now."
-
+        else:
+            raise ValueError(f"Unknown model selected: {model_name}")
+    except Exception as e:
+        logger.exception(f"Error in {model_name} inference")
+        error = f"Error using {model_name}: {str(e)}"
+        return "I'm sorry, I'm having trouble understanding you right now."
+    if error:
+        return f"⚠️ {error} - I'm sorry, I'm having trouble understanding you right now."
     assistant_reply = generated.strip()
-
-    # Ensure only the assistant's response is extracted
     if "Assistant:" in assistant_reply:
         assistant_reply = assistant_reply.split("Assistant:", 1)[-1].strip()
-
-    # Remove unnecessary new conversation markers if present
     if "### New Conversation:" in assistant_reply:
         assistant_reply = assistant_reply.split("### New Conversation:")[0].strip()
-
     logger.info(f"Final Extracted Assistant Reply:\n{assistant_reply}")
-
     return assistant_reply
 
 @app.get("/", response_class=HTMLResponse)
@@ -187,7 +202,7 @@ async def root(request: Request):
     return templates.TemplateResponse("web.html", {"request": request})
 
 @app.get("/Overview", response_class=HTMLResponse)
-async def chatbot_page(request: Request):
+async def overview_page(request: Request):
     return templates.TemplateResponse("Overview.html", {"request": request})
 
 @app.get("/chatbot", response_class=HTMLResponse)
@@ -198,6 +213,20 @@ async def chatbot_page(request: Request):
 async def favicon():
     return Response(status_code=204)
 
+@app.get("/api/model-status")
+async def model_status():
+    # Check if the local model can be loaded
+    local_status = False
+    try:
+        _ = load_local_model()
+        local_status = True
+    except Exception:
+        local_status = False
+    return {
+        "Local-Provider": local_status,
+        "Inference-Provider": HF_INFERENCE_API_KEY is not None
+    }
+
 @app.post("/api/chat")
 async def chat(chat_request: ChatRequest):
     """Chat API endpoint."""
@@ -206,8 +235,10 @@ async def chat(chat_request: ChatRequest):
         if not user_message:
             return JSONResponse(status_code=400, content={"error": "Message cannot be empty."})
         
-        mental_state = detect_mental_state(user_message)
-        chatbot_response = get_chatbot_response(
+        # Offload blocking calls to background threads
+        mental_state = await asyncio.to_thread(detect_mental_state, user_message)
+        chatbot_response = await asyncio.to_thread(
+            get_chatbot_response,
             mental_state,
             user_message,
             chat_request.system_prompt,
@@ -216,8 +247,8 @@ async def chat(chat_request: ChatRequest):
         )
         return JSONResponse(content={"mental_state": mental_state, "response": chatbot_response})
     except Exception as e:
-        logger.error(f"Error in /api/chat endpoint: {e}")
+        logger.exception("Error in /api/chat endpoint")
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("chatbot:app", host="127.0.0.1", port=8000, reload=True)
