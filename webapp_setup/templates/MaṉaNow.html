@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MentaNow - Mental Health Assessment</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+  
+  <!-- Header -->
+  <header class="bg-white shadow py-4">
+    <div class="container mx-auto px-4 flex items-center justify-between">
+      <h1 class="text-xl font-bold text-blue-600">MentaNow</h1>
+      <a href="/" class="text-gray-700 hover:underline">Back to Home</a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 container mx-auto px-4 py-6">
+    <!-- Instruction / Intro -->
+    <div id="introSection" class="mb-8">
+      <h2 class="text-2xl font-semibold mb-4">Welcome to MentaNow</h2>
+      <p class="text-lg text-gray-700">
+        This short assessment will help us better understand your current mental state. 
+        Please answer the following questions honestly. 
+        Remember, this is <strong>not a medical diagnosis</strong>. 
+        If you’re experiencing serious symptoms, please seek professional help.
+      </p>
+    </div>
+
+    <!-- Questions Section -->
+    <div id="questionCard" class="bg-white rounded shadow p-6 hidden">
+      <h3 id="questionTitle" class="text-xl font-bold mb-4">Question Title</h3>
+      <p id="questionText" class="text-gray-700 mb-4">Question text goes here...</p>
+      
+      <!-- Example: Radiobutton / text input container -->
+      <div id="answerContainer" class="mb-6 space-y-2">
+        <!-- Populated dynamically with JS (radio buttons, text inputs, etc.) -->
+      </div>
+
+      <button 
+        id="nextButton"
+        class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        onclick="submitAnswer()"
+      >
+        Next
+      </button>
+    </div>
+
+    <!-- Final Report Section -->
+    <div id="reportSection" class="hidden bg-white rounded shadow p-6">
+      <h3 class="text-xl font-bold mb-4">Assessment Report</h3>
+      <p id="reportText" class="text-gray-700 mb-6">
+        <!-- Populated with final suggestions or summary -->
+      </p>
+      <a 
+        href="/"
+        class="inline-block px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+      >
+        Done
+      </a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-200 py-4">
+    <div class="container mx-auto px-4 text-center text-gray-600">
+      &copy; 2025 MentaNow. Not a medical diagnosis.
+    </div>
+  </footer>
+
+  <!-- Script for MentaNow logic -->
+  <script>
+    // Global state: track current question index, user answers, etc.
+    let currentQuestionIndex = 0;
+    let userAnswers = [];
+
+    // Sample structure: each question has { title, text, type, options? }
+    // In a real flow, we fetch these from the backend one by one
+    // or the backend returns the next question after each answer.
+    
+    // Show first question
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Ask the backend for the first question
+      const firstQuestion = await fetchNextQuestion(null);
+      if (firstQuestion) {
+        displayQuestion(firstQuestion);
+      }
+    });
+
+    // Display question in UI
+    function displayQuestion(questionData) {
+      document.getElementById('introSection').classList.add('hidden');
+      const questionCard = document.getElementById('questionCard');
+      questionCard.classList.remove('hidden');
+
+      document.getElementById('questionTitle').innerText = questionData.title;
+      document.getElementById('questionText').innerText = questionData.text;
+
+      // Populate answerContainer
+      const answerContainer = document.getElementById('answerContainer');
+      answerContainer.innerHTML = ''; // clear old content
+
+      if (questionData.type === 'radio') {
+        // e.g., ["Yes", "No", "I don't know"]
+        questionData.options.forEach(opt => {
+          const radioId = `opt-${opt}`;
+          answerContainer.innerHTML += `
+            <label class="flex items-center space-x-2">
+              <input type="radio" name="answer" value="${opt}" id="${radioId}" class="form-radio">
+              <span>${opt}</span>
+            </label>
+          `;
+        });
+      } else if (questionData.type === 'text') {
+        // e.g., open text input
+        answerContainer.innerHTML = `
+          <input 
+            type="text" 
+            id="textAnswer"
+            class="w-full border rounded p-2"
+            placeholder="Type your answer..."
+          />
+        `;
+      }
+    }
+
+    // Called when user clicks "Next"
+    async function submitAnswer() {
+      const answerContainer = document.getElementById('answerContainer');
+      const questionTitle = document.getElementById('questionTitle').innerText;
+      
+      // Retrieve user answer
+      let userAnswer = '';
+      // Check if radio
+      const radioSelected = answerContainer.querySelector('input[type="radio"]:checked');
+      if (radioSelected) {
+        userAnswer = radioSelected.value;
+      } else {
+        // Check if text
+        const textInput = answerContainer.querySelector('#textAnswer');
+        if (textInput) {
+          userAnswer = textInput.value.trim();
+        }
+      }
+      
+      if (!userAnswer) {
+        alert("Please select or type an answer.");
+        return;
+      }
+
+      // Save answer locally
+      userAnswers.push({ question: questionTitle, answer: userAnswer });
+
+      // Request next question or final from backend
+      const nextData = await fetchNextQuestion(userAnswer);
+      if (!nextData) {
+        alert("Error fetching next question.");
+        return;
+      }
+
+      if (nextData.type === 'report') {
+        // Show final report
+        showReport(nextData);
+      } else {
+        // Show next question
+        displayQuestion(nextData);
+      }
+    }
+
+    // Example: calls /api/mentanow to get next question or final report
+    async function fetchNextQuestion(userAnswer) {
+      try {
+        const response = await fetch('/api/mentanow', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userAnswer, userAnswers })
+        });
+        if (!response.ok) {
+          throw new Error("Server error: " + response.status);
+        }
+        return await response.json();
+      } catch (err) {
+        console.error("fetchNextQuestion error:", err);
+        return null;
+      }
+    }
+
+    function showReport(reportData) {
+      // Hide questionCard, show reportSection
+      document.getElementById('questionCard').classList.add('hidden');
+      const reportSection = document.getElementById('reportSection');
+      reportSection.classList.remove('hidden');
+
+      document.getElementById('reportText').innerText = reportData.reportText;
+    }
+  </script>
+</body>
+</html>
