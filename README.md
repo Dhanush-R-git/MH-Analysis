@@ -49,3 +49,34 @@ run the backend file in terminal
 ```bash
 python webapp_setup/chatbot.py
 ```
+```mermaid
+sequenceDiagram
+    actor User as 🧑‍💻 User
+    participant Maṉa_UI as 🌐 Maṉa Web App
+    participant Social_API as 🔗 Social Media API
+    participant Sentiment_Analysis as 📊 Sentiment Analysis (RoBERTa)
+    participant MaṉaNow as 🤖 MaṉaNow (DeepSeek-R1)
+    participant MaṉaChat as 💬 MaṉaChat (Llama-3.2-3B)
+    participant Report_System as 📄 Report Generation
+
+    User ->> Maṉa_UI: Clicks "Get Started" 🚀
+    Maṉa_UI ->> Social_API: Fetches user comments 📝
+    Social_API -->> Maṉa_UI: Returns comments 📥
+    Maṉa_UI ->> Sentiment_Analysis: Analyzes sentiment 🔍
+    
+    alt Positive Count >= Negative Count 👍
+        Maṉa_UI ->> User: Display Sentiment Report ✅
+        User ->> MaṉaChat: Starts conversation 💬
+        MaṉaChat -->> User: Provides mental health tips 🧘‍♂️
+    else Negative Count > Positive Count 🚨
+        Maṉa_UI ->> MaṉaNow: Trigger mental health assessment 🔴
+        MaṉaNow ->> User: Asks mental health-related questions ❓
+        User -->> MaṉaNow: Answers questions 📝
+        MaṉaNow ->> Report_System: Generates report 📄
+        Report_System -->> User: Displays final mental health report 🏥
+    end
+    
+    User ->> Maṉa_UI: Can download report or seek advice 📥
+    User ->> MaṉaChat: Asks for guidance 💡
+    MaṉaChat -->> User: Provides personalized mental health support 🤗
+```
