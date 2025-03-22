@@ -80,3 +80,27 @@ sequenceDiagram
     User ->> MaṉaChat: Asks for guidance 💡
     MaṉaChat -->> User: Provides personalized mental health support 🤗
 ```
+```mermaid
+graph TD;
+    A[User Visits Homepage] -->|Selects MaṉaChat| B(MaṉaChat);
+    A -->|Selects MaṉaNow| C(MaṉaNow);
+    
+    %% MaṉaChat Flow
+    B --> D{User Inputs Query};
+    D --> E[Retrieve AI-based Response];
+    E --> F[Display Mental Health Tips];
+    
+    %% MaṉaNow Flow
+    C --> G{User Uploads Comments or Fetch via API};
+    G --> H[Perform Sentiment Analysis];
+    H --> I{Negative Sentiment > Positive Sentiment?};
+    
+    I -- Yes --> J[Trigger MaṉaNow Questions];
+    J --> K[User Responds];
+    K --> L[Generate Mental Health Report];
+    L --> M[Store Report in Database];
+    M --> N[Display Report to User];
+    
+    I -- No --> O[End Session];
+```
+
