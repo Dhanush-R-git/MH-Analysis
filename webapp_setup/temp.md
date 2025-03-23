@@ -1,3 +1,4 @@
+``` bash
 from fastapi import FastAPI, Request # type: ignore
 from fastapi.responses import JSONResponse # type: ignore
 from pydantic import BaseModel # type: ignore
@@ -110,3 +111,4 @@ Provide a concise summary of the user's mental state and suggestions.
 Remember: This is not a medical diagnosis, just supportive guidance.
     """
     return prompt.strip()
+```
