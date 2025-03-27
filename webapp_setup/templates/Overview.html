@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ProjectOverview</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .progress-container {
+      width: 100%;
+      max-width: 500px;
+      margin: 20px auto;
+    }
+    .progress-bar {
+      height: 30px;
+      border-radius: 5px;
+      text-align: center;
+      line-height: 30px;
+      color: white;
+      font-weight: bold;
+    }
+    .progress-positive {
+      background-color: #34D399;
+    }
+    .progress-negative {
+      background-color: #F87171;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
@@ -22,28 +43,49 @@
 
   <!-- Project Details -->
   <section class="container mx-auto px-6 py-12 text-center">
-    <h1 class="text-4xl font-bold text-blue-600 mb-4">Welcome to MentaChat</h1>
+    <h1 class="text-4xl font-bold text-blue-600 mb-4">Welcome to Maṉa</h1>
     <p class="text-lg text-gray-700 max-w-3xl mx-auto mb-6">
-        MaṉaChat is an AI-powered chatbot designed to support mental health well-being. Our project aims to provide a safe and non-judgmental space for users to share their thoughts and receive supportive, helpful guidance.
-    </p>
-    <p class="text-lg text-gray-700 max-w-3xl mx-auto mb-6">
-      Using cutting-edge NLP models, MentaChat analyzes user input, detects emotional states, and offers practical advice or coping strategies. Whether you're feeling anxious, stressed, or just need someone to talk to, MentaChat is here to help.
+      Maṉa is a web-based application for mental health analysis via social media. Our system analyzes your social media comments using advanced NLP models and offers personalized guidance.
     </p>
 
-    <!-- Call-to-action -->
-    <div class="mt-8">
-      <a href="/Manachat.html"
-        class="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-lg font-semibold">
-        Get Started with MaṉaChat
+    <!-- Call-to-action Buttons -->
+    <div class="mt-8 space-y-4">
+      <a href="/Manachat"
+         class="block px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-lg font-semibold">
+         Get Started with MaṉaChat
+      </a>
+      <a href="/ManaNow"
+         class="block px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-lg font-semibold">
+         Get Started with MaṉaNow
       </a>
     </div>
-    <div class="mt-8">
-        <a href="/ManaNow.html"
-          class="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-lg font-semibold">
-          Get Started with MaṉaNow
-        </a>
+
+    <!-- File Upload Option with Sentiment Visualization -->
+    <div class="mt-8 bg-white p-4 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-2">Upload Your Comments (JSON)</h2>
+      <p class="text-gray-600 mb-4">
+        If you have exported your social media comments (Instagram, Twitter, etc.) in JSON format, upload your file below.
+        Only the "value" field under "Comment" will be used for analysis.
+      </p>
+      <input type="file" id="fileUpload" accept=".json" class="mb-4 mx-auto block">
+      <button onclick="uploadComments()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        Upload and Analyze
+      </button>
+      <div id="uploadResult" class="mt-4 text-gray-700"></div>
+      
+      <!-- Progress Bars Container -->
+      <div id="progressBars" class="progress-container hidden">
+        <div id="positiveBar" class="progress-bar progress-positive" style="width: 0%">0%</div>
+        <div id="negativeBar" class="progress-bar progress-negative mt-2" style="width: 0%">0%</div>
+      </div>
+      
+      <!-- Trigger button for assessment if negative sentiment is higher -->
+      <div id="triggerAssessment" class="mt-4 hidden">
+        <button onclick="window.location.href='/ManaNow'" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+          Proceed to Mental Health Assessment
+        </button>
+      </div>
     </div>
-    
   </section>
 
   <!-- Footer -->
@@ -53,5 +95,62 @@
     </div>
   </footer>
 
+  <script>
+    async function uploadComments() {
+      const fileInput = document.getElementById('fileUpload');
+      if (!fileInput.files.length) {
+        alert("Please select a file to upload.");
+        return;
+      }
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        const response = await fetch('/api/upload-comments', {
+          method: 'POST',
+          body: formData
+        });
+        if (!response.ok) {
+          console.error("Response not ok:", response.statusText);
+          throw new Error("Network response was not ok");
+        }
+        const result = await response.json();
+        if (result.error) {
+          document.getElementById('uploadResult').textContent = "Error processing file: " + result.error;
+          return;
+        }
+        document.getElementById('uploadResult').textContent =
+          `Sentiment Analysis - Positive: ${result.positive}, Negative: ${result.negative}`;
+        showProgressBars(result.positive, result.negative);
+        // Trigger assessment if negative count exceeds positive count.
+        if (result.negative > result.positive) {
+          document.getElementById('triggerAssessment').classList.remove('hidden');
+        } else {
+          document.getElementById('triggerAssessment').classList.add('hidden');
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
+        document.getElementById('uploadResult').textContent = "Error uploading file. Please try again.";
+      }
+    }
+
+    function showProgressBars(positive, negative) {
+      const progressBars = document.getElementById('progressBars');
+      progressBars.classList.remove('hidden');
+      
+      const total = positive + negative;
+      const positivePercent = total ? Math.round((positive / total) * 100) : 0;
+      const negativePercent = total ? Math.round((negative / total) * 100) : 0;
+      
+      const positiveBar = document.getElementById('positiveBar');
+      const negativeBar = document.getElementById('negativeBar');
+      
+      positiveBar.style.width = positivePercent + "%";
+      positiveBar.textContent = "Positive: " + positivePercent + "%";
+      
+      negativeBar.style.width = negativePercent + "%";
+      negativeBar.textContent = "Negative: " + negativePercent + "%";
+    }
+  </script>
 </body>
 </html>

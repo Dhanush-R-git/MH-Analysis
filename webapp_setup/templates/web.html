@@ -38,12 +38,15 @@
   <!-- Navigation -->
   <nav class="bg-white shadow">
     <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="#" class="text-2xl font-bold text-blue-600">Maṉa</a>
+      <a href="/" class="flex items-center">
+        <img src="/static/assets/logo.png" alt="Maṉa Logo" class="h-8 w-auto mr-2" />
+        <span class="text-2xl font-bold text-blue-600">Maṉa</span>
+      </a>
       <div class="hidden md:flex space-x-6">
-        <a href="#" class="text-gray-600 hover:text-gray-900">Home</a>
+        <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
         <a href="/Overview" class="text-gray-600 hover:text-gray-900">About Project</a>
-        <a href="#" class="text-gray-600 hover:text-gray-900">Portfolio</a>
-        <a href="#" class="text-gray-600 hover:text-gray-900">Team</a>
+        <a href="/Research#portfolio" class="text-gray-600 hover:text-gray-900">Portfolio</a>
+        <a href="/Research#team" class="text-gray-600 hover:text-gray-900">Team</a>
       </div>
     </div>
   </nav>
@@ -66,7 +69,7 @@
           class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
           Get Started
         </a>
-        <a href="#"
+        <a href="/Research"
           class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
           Our Research
           </a>
@@ -75,8 +78,8 @@
   </section>
 
   <!-- Footer -->
-  <footer class="bg-gray-200 py-4 mt-8">
-    <div class="container mx-auto px-4 text-center text-gray-600">
+  <footer class="bg-gray-200 py-4" role="contentinfo" aria-label="Site Footer">
+    <div class="container mx-auto text-center text-gray-600">
       &copy; 2025 Maṉa. All rights reserved.
     </div>
   </footer>

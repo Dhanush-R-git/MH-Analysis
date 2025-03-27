@@ -5,3 +5,6 @@ huggingface_hub
 fastAPI
 pydantic
 uvicorn
+numpy
+scipy
+pandas

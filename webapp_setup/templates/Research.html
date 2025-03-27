@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Maṉa Research</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Optionally include Chart.js if you want dynamic charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <style>
+    :root {
+      --soft-green: #A7F3D0;
+      --soft-cyan: #67E8F9;
+      --calm-bg: #E0F7FA;
+      --calm-accent: #B2EBF2;
+    }
+    /* Page wrapper for sticky footer */
+    .page-wrapper {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .main-content {
+      flex: 1;
+    }
+    /* Transparent background for content sections */
+    .content-container {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(4px);
+    }
+    /* Custom scrollbar */
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body class="bg-calm-bg text-gray-800 font-sans">
+  <div class="page-wrapper">
+    <!-- Header -->
+    <header class="bg-white/90 shadow-md" role="banner" aria-label="Main Navigation">
+      <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
+        <a href="/" class="flex items-center" aria-label="Home">
+          <img src="/static/assets/logo.png" alt="Maṉa Logo" class="h-8 w-auto mr-2"/>
+          <span class="text-2xl font-bold text-soft-cyan">Maṉa</span>
+        </a>
+        <div class="hidden md:flex space-x-6">
+          <a href="/" class="text-gray-600 hover:text-gray-900" aria-label="Home">Home</a>
+          <a href="/Overview" class="text-gray-600 hover:text-gray-900" aria-label="About Project">About Project</a>
+          <!--<a href="/Research" class="text-gray-600 hover:text-gray-900" aria-label="Research">Research</a>-->
+          <a href="/Research#portfolio" class="text-gray-600 hover:text-gray-900" aria-label="Portfolio">Portfolio</a>
+          <a href="/Research#team" class="text-gray-600 hover:text-gray-900" aria-label="Team">Team</a>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content container mx-auto px-4 py-8">
+      <!-- Architecture Explanation Section -->
+      <section class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Architecture Explanation">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Our Architecture</h2>
+        <p class="text-lg text-gray-700 mb-4">
+          Our system leverages social media data to analyze mental health through sentiment analysis and AI-driven diagnostic models.
+          We use a fine-tuned RoBERTa model for sentiment classification, and our dual approach includes a standard chatbot and a detailed assessment tool.
+          The architecture comprises a data aggregation layer, a preprocessing module, advanced NLP modules, and secure storage for user data.
+        </p>
+        <p class="text-lg text-gray-700">
+          The diagram below illustrates the flow from data collection to personalized recommendations:
+        </p>
+        <!-- Placeholder for Architecture Diagram -->
+        <div class="mt-6">
+          <img src="/static/assets/architecture.drawio.png" alt="Architecture Diagram" class="mx-auto rounded shadow-md" />
+        </div>
+      </section>
+
+      <!-- Model Performance Section -->
+      <section class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Model Performance">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Model Performance</h2>
+        <p class="text-lg text-gray-700 mb-4">
+          Our system has been rigorously tested to ensure high accuracy in sentiment analysis and mental health assessments. Below are some key performance metrics.
+        </p>
+        <!-- Placeholder for a Chart -->
+        <div class="mb-6">
+          <canvas id="performanceChart" class="w-full max-w-lg mx-auto"></canvas>
+        </div>
+        <!-- Table for detailed performance metrics -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="py-2 px-4 text-left text-gray-600 font-medium">Model</th>
+                <th class="py-2 px-4 text-left text-gray-600 font-medium">Accuracy</th>
+                <th class="py-2 px-4 text-left text-gray-600 font-medium">Precision</th>
+                <th class="py-2 px-4 text-left text-gray-600 font-medium">Recall</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-t">
+                <td class="py-2 px-4">RoBERTa (Fine-tuned)</td>
+                <td class="py-2 px-4">92%</td>
+                <td class="py-2 px-4">90%</td>
+                <td class="py-2 px-4">93%</td>
+              </tr>
+              <tr class="border-t">
+                <td class="py-2 px-4">Meta-Llama (Instruct)</td>
+                <td class="py-2 px-4">88%</td>
+                <td class="py-2 px-4">87%</td>
+                <td class="py-2 px-4">89%</td>
+              </tr>
+              <!-- More rows as needed -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Portfolio and Team Section -->
+      <section class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Portfolio and Team">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Our Portfolio &amp; Team</h2>
+        <p class="text-lg text-gray-700 mb-4">
+          Our research is supported by a diverse team of experts in artificial intelligence, data analytics, and mental health. Our portfolio showcases projects that have successfully integrated cutting-edge technology with real-world mental health solutions.
+        </p>
+        <!-- Portfolio Section -->
+      <section id="portfolio" class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Portfolio">
+        <div class="container mx-auto">
+          <h3 class="text-2xl font-semibold text-gray-800 mb-2">Portfolio</h3>
+          <ul class="list-disc pl-6 text-lg text-gray-700">
+            <li>Project Maṉa - Mental Health Analysis via Social Media</li>
+            <li>AI-driven Stress Reduction Tool</li>
+            <li>Real-time Sentiment Monitoring System</li>
+          </ul>
+        <div class="pb-16"></div> <!-- Add padding to the bottom -->
+      </section>
+        <!-- Team Section -->
+      <section id="team" class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Team">   
+        <div class="container mx-auto">
+          <h3 class="text-2xl font-semibold text-gray-800 mb-2">Team</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Team Member Card -->
+            <div class="bg-white rounded-lg shadow p-4 text-center">
+              <img src="/static/assets/team_member1.jpg" alt="Alice Johnson, AI Researcher" class="w-24 h-24 rounded-full mx-auto mb-2"/>
+              <h4 class="text-xl font-semibold text-gray-800">Alice Johnson</h4>
+              <p class="text-gray-600">AI Researcher</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4 text-center">
+              <img src="/static/assets/team_member2.jpg" alt="Bob Smith, Data Scientist" class="w-24 h-24 rounded-full mx-auto mb-2"/>
+              <h4 class="text-xl font-semibold text-gray-800">Bob Smith</h4>
+              <p class="text-gray-600">Data Scientist</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4 text-center">
+              <img src="/static/assets/team_member3.jpg" alt="Carol Lee, Software Engineer" class="w-24 h-24 rounded-full mx-auto mb-2"/>
+              <h4 class="text-xl font-semibold text-gray-800">Carol Lee</h4>
+              <p class="text-gray-600">Software Engineer</p>
+            </div>
+          </div>
+        </div>
+        <div class="pb-16"></div> <!-- Add padding to the bottom -->
+      </section>
+      </section>
+
+      <!-- Feedback Section -->
+      <section class="content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Feedback">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Feedback</h2>
+        <p class="text-lg text-gray-700 mb-4">
+          We value your feedback on our MaṉaChat and MaṉaNow platforms. Please let us know your thoughts below or contact us directly.
+        </p>
+        <form id="feedbackForm" class="space-y-4" aria-label="Feedback Form">
+          <div>
+            <label for="feedbackName" class="block text-lg font-medium text-gray-700">Name</label>
+            <input type="text" id="feedbackName" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Your Name" aria-label="Your Name" required>
+          </div>
+          <div>
+            <label for="feedbackEmail" class="block text-lg font-medium text-gray-700">Email</label>
+            <input type="email" id="feedbackEmail" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="you@example.com" aria-label="Your Email" required>
+          </div>
+          <div>
+            <label for="platformSelect" class="block text-lg font-medium text-gray-700">Platform</label>
+            <select id="platformSelect" class="mt-1 block w-full border border-gray-300 rounded-md p-2" aria-label="Platform Selection">
+              <option value="MaṉaChat">MaṉaChat</option>
+              <option value="MaṉaNow">MaṉaNow</option>
+            </select>
+          </div>
+          <div>
+            <label for="feedbackMessage" class="block text-lg font-medium text-gray-700">Feedback</label>
+            <textarea id="feedbackMessage" rows="4" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Your feedback here..." aria-label="Your Feedback" required></textarea>
+          </div>
+          <button type="submit" class="px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition">
+            Submit Feedback
+          </button>
+        </form>
+        <div class="mt-4 text-gray-700">
+          <p class="mb-1">Alternatively, you can email us at <a href="mailto:feedback@example.com" class="text-teal-600 hover:underline">feedback@example.com</a></p>
+          <p>Or send an SMS to <a href="tel:+1234567890" class="text-teal-600 hover:underline">+1 234 567 890</a></p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-200 py-4" role="contentinfo" aria-label="Site Footer">
+      <div class="container mx-auto text-center text-gray-600">
+        &copy; 2025 Maṉa. All rights reserved.
+      </div>
+    </footer>
+  </div>
+
+  <!-- Optional JavaScript for Chart -->
+  <script>
+    // Sample chart using Chart.js for model performance
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    const performanceChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        datasets: [{
+          label: 'Model Accuracy (%)',
+          data: [90, 91, 92, 92],
+          backgroundColor: 'rgba(103, 232, 249, 0.3)',
+          borderColor: 'rgba(103, 232, 249, 1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: false,
+            max: 100
+          }
+        }
+      }
+    });
+
+    // Feedback form submission handling (sample functionality)
+    document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // Gather form data
+      const name = document.getElementById('feedbackName').value;
+      const email = document.getElementById('feedbackEmail').value;
+      const platform = document.getElementById('platformSelect').value;
+      const message = document.getElementById('feedbackMessage').value;
+      // Here, you might send the data to a backend endpoint via fetch
+      console.log('Feedback submitted:', { name, email, platform, message });
+      alert('Thank you for your feedback!');
+      this.reset();
+    });
+  </script>
+</body>
+</html>
