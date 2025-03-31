@@ -15,6 +15,10 @@
       --calm-bg: #E0F7FA;
       --calm-accent: #B2EBF2;
     }
+    /* Soft pastel gradient background */
+    .hero-bg {
+      background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
+    }
     /* Page wrapper for sticky footer */
     .page-wrapper {
       display: flex;
@@ -24,10 +28,20 @@
     .main-content {
       flex: 1;
     }
-    /* Transparent background for content sections */
+    /* Transparent background for content sections
     .content-container {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(4px);
+    } */
+    .content-container:hover {
+    transform: scale(1.02); /* Slightly enlarge the container */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Add a shadow effect */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+    }
+    .content-box:hover {
+    background-color: rgba(255, 255, 255, 0.85); /* Add a subtle background color change */
+    transform: translateY(-5px); /* Slightly lift the box */
+    transition: transform 0.3s ease, background-color 0.3s ease; /* Smooth transition */
     }
     /* Custom scrollbar */
     html {
@@ -35,10 +49,10 @@
     }
   </style>
 </head>
-<body class="bg-calm-bg text-gray-800 font-sans">
+<body class="hero-bg text-gray-800 font-sans">
   <div class="page-wrapper">
     <!-- Header -->
-    <header class="bg-white/90 shadow-md" role="banner" aria-label="Main Navigation">
+    <header class="bg-white/90 shadow-md sticky top-0 z-50" role="banner" aria-label="Main Navigation">
       <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
         <a href="/" class="flex items-center" aria-label="Home">
           <img src="/static/assets/logo.png" alt="Maṉa Logo" class="h-8 w-auto mr-2"/>
@@ -46,10 +60,10 @@
         </a>
         <div class="hidden md:flex space-x-6">
           <a href="/" class="text-gray-600 hover:text-gray-900" aria-label="Home">Home</a>
-          <a href="/Overview" class="text-gray-600 hover:text-gray-900" aria-label="About Project">About Project</a>
+          <a href="/Overview" class="text-gray-600 hover:text-gray-900" aria-label="About Project">Maṉa Services</a>
           <!--<a href="/Research" class="text-gray-600 hover:text-gray-900" aria-label="Research">Research</a>-->
           <a href="/Research#portfolio" class="text-gray-600 hover:text-gray-900" aria-label="Portfolio">Portfolio</a>
-          <a href="/Research#team" class="text-gray-600 hover:text-gray-900" aria-label="Team">Team</a>
+          <a href="/Research#collaborators" class="text-gray-600 hover:text-gray-900" aria-label="Team">Collaborators</a>
         </div>
       </nav>
     </header>
@@ -57,6 +71,77 @@
     <!-- Main Content -->
     <main class="main-content container mx-auto px-4 py-8">
       <!-- Architecture Explanation Section -->
+      <section class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Research Explanation">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Maṉa - A Comprehensive Mental Health Analysis & Research via Social Media Platforms</h2>
+        <p class="text-xl text-teal-700 mb-4">
+          <i>"Our project, Maṉa platforms are designed to analyze the mental health conditions through user interactions with social media. Maṉa research aims to transform raw social media data into meaningful insights that can help improve mental health care and inform broader social strategies".</i>
+        </p>
+        <h6 class="text-3xl font-bold text-gray-800 mb-4">Why Maṉa Research?</h6>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Box 1 -->
+          <div class="bg-white p-6 rounded-lg shadow-md content-box">
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Real-Time Emotional Insights</h3>
+            <p class="text-gray-700">
+              It helps capture real-time public sentiment by analyzing users’ comments and expressions online, providing immediate insights into mental well-being.
+            </p>
+          </div>
+          <!-- Box 2 -->
+          <div class="bg-white p-6 rounded-lg shadow-md content-box">
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Early Detection of Mental Health Issues</h3>
+            <p class="text-gray-700">
+              By accurately detecting negative emotions and subtle differences between moods, the research can identify early warning signs of mental distress.
+            </p>
+          </div>
+          <!-- Box 3 -->
+          <div class="bg-white p-6 rounded-lg shadow-md content-box">
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Improved Policy and Market Research</h3>
+            <p class="text-gray-700">
+              The research supports public policy decisions and market research by revealing trends and patterns in how people express their feelings.
+            </p>
+          </div>
+          <!-- Box 4 -->
+          <div class="bg-white p-6 rounded-lg shadow-md content-box">
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Bridging Gaps in Traditional Analysis</h3>
+            <p class="text-gray-700">
+              Traditional sentiment analysis often misses nuanced emotional cues due to informal language and cultural expressions. Maṉa research addresses these gaps with advanced natural language processing models.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Maṉa platforms Explanation">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Maṉa Platforms</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Box 1 -->
+          <div class="bg-white p-6 rounded-lg shadow-md content-box">
+            <h3 class="text-xl font-semibold text-teal-800 mb-2">MaṉaChat</h3>
+            <p class="text-gray-700 font-semibold">
+              <i>MaṉaChat-Instructing AI that provides a chat interface where users ask queries related to mental health (e.g., “How do I reduce stress?”) and receive supportive instructions ---<a href="/Overview" class="text-teal-600 hover:underline">check here</a></i>
+            </p>
+          </div>
+          <!-- Box 2 -->
+          <div class="bg-white p-6 rounded-lg shadow-md content-box">
+            <h3 class="text-xl font-semibold text-teal-800 mb-2">MaṉaNow</h3>
+            <p class="text-gray-700 font-semibold">
+              <i>MaṉaNow-Questioning AI that interacts with the user through a structured assessment flow and ultimately generates a final report along with supportive instructions ---<a href="/Overview" class="text-teal-600 hover:underline">check here</a></i>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Research Explanation">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Maṉa - A Comprehensive Mental Health Analysis & Research via Social Media Platforms</h2>
+        <p class="text-xl text-teal-700 mb-4">
+          <i>"Our project, Maṉa platforms are designed to analyze the mental health conditions through user interactions with social media. Maṉa research aims to transform raw social media data into meaningful insights that can help improve mental health care and inform broader social strategies".</i>
+        </p>
+        <div class="bg-white p-6 rounded-lg shadow-md content-box">
+          <h3 class="text-xl font-semibold text-gray-800 mb-2">Real-Time Emotional Insights</h3>
+          <p class="text-gray-700">
+            It helps capture real-time public sentiment by analyzing users’ comments and expressions online, providing immediate insights into mental well-being.
+          </p>
+        </div>
+      </section>
+
       <section class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Architecture Explanation">
         <h2 class="text-3xl font-bold text-gray-800 mb-4">Our Architecture</h2>
         <p class="text-lg text-gray-700 mb-4">
@@ -115,7 +200,7 @@
 
       <!-- Portfolio and Team Section -->
       <section class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Portfolio and Team">
-        <h2 class="text-3xl font-bold text-gray-800 mb-4">Our Portfolio &amp; Team</h2>
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Our Portfolio &amp; Collaborators</h2>
         <p class="text-lg text-gray-700 mb-4">
           Our research is supported by a diverse team of experts in artificial intelligence, data analytics, and mental health. Our portfolio showcases projects that have successfully integrated cutting-edge technology with real-world mental health solutions.
         </p>
@@ -131,14 +216,14 @@
         <div class="pb-16"></div> <!-- Add padding to the bottom -->
       </section>
         <!-- Team Section -->
-      <section id="team" class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Team">   
+      <section id="collaborators" class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Team">   
         <div class="container mx-auto">
-          <h3 class="text-2xl font-semibold text-gray-800 mb-2">Team</h3>
+          <h3 class="text-2xl font-semibold text-gray-800 mb-2">Collaborators</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Team Member Card -->
             <div class="bg-white rounded-lg shadow p-4 text-center">
-              <img src="/static/assets/team_member1.jpg" alt="Alice Johnson, AI Researcher" class="w-24 h-24 rounded-full mx-auto mb-2"/>
-              <h4 class="text-xl font-semibold text-gray-800">Alice Johnson</h4>
+              <img src="/static/assets/team_member1.jpg" alt="Dhanush Ravi, AI Researcher" class="w-24 h-24 rounded-full mx-auto mb-2"/>
+              <h4 class="text-xl font-semibold text-gray-800">Dhanush Ravi</h4>
               <p class="text-gray-600">AI Researcher</p>
             </div>
             <div class="bg-white rounded-lg shadow p-4 text-center">

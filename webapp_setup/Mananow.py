@@ -177,7 +177,8 @@ except Exception as e:
     logger.error(f"Failed to load sentiment analysis model: {str(e)}")
     
 def preprocess(text: str) -> str:
-    """Preprocess text by replacing usernames and URLs with placeholders."""
+    """Preprocess text by lowercasing, and replacing usernames and URLs with placeholders."""
+    text = text.lower()  # Convert text to lowercase for consistency.
     new_text = []
     for t in text.split():
         if t.startswith('@') and len(t) > 1:
@@ -194,13 +195,11 @@ def analyze_comments_sentiment(json_data: str) -> dict:
       - A JSON array of objects
       - A single JSON object (which will be wrapped into a list)
       - Line-separated JSON objects
-    Only the "value" field under "Comment" is used for analysis.
-    Returns counts of 'Positive' and 'Negative' sentiments.
-    Note: 'Neutral' is treated as 'Negative'.
+    Only the "value" field under "Comment" will be used for analysis.
+    Returns counts of 'Positive', 'Negative', and 'Neutral' sentiments along with detailed results.
     """
     data = []
     try:
-        # Try to parse the entire input as JSON.
         data = json.loads(json_data)
         if isinstance(data, dict):
             data = [data]
@@ -208,12 +207,10 @@ def analyze_comments_sentiment(json_data: str) -> dict:
             raise ValueError("Parsed JSON is not a list or dict.")
     except Exception as e:
         logger.warning("Full JSON parse failed, attempting line-by-line parsing. Error: %s", e)
-        # Fallback: Attempt to parse line-separated JSON objects.
         for line in json_data.strip().splitlines():
             line = line.strip()
             if not line:
                 continue
-            # Remove trailing commas if present.
             if line.endswith(','):
                 line = line[:-1]
             try:
@@ -229,17 +226,104 @@ def analyze_comments_sentiment(json_data: str) -> dict:
 
     positive_count = 0
     negative_count = 0
+    neutral_count = 0
+    details = []  # Store detailed results
 
     for item in data:
         try:
             comment_text = item["string_map_data"]["Comment"]["value"]
         except KeyError:
             continue
-        
-        # Ensure we have a non-empty string.
+
         if not isinstance(comment_text, str) or not comment_text.strip():
             continue
-        
+
+        processed_text = preprocess(comment_text)
+        try:
+            encoded_input = tokenizer(processed_text, return_tensors='pt')
+            output = model(**encoded_input)
+            scores = output[0][0].detach().numpy()
+            scores = softmax(scores)
+            ranking = np.argsort(scores)[::-1]
+            top_label = config.id2label[ranking[0]]
+            # Debug log: print scores for each label
+            logger.debug("Text: '%s' | Scores: %s | Top label: %s", comment_text, scores, top_label)
+        except Exception as ex:
+            logger.warning("Error processing comment '%s': %s", comment_text, ex)
+            continue
+
+        # Count each sentiment category separately
+        if top_label == "Positive":
+            positive_count += 1
+            sentiment = "Positive"
+        elif top_label == "Neutral":
+            neutral_count += 1
+            sentiment = "Neutral"
+        else:
+            negative_count += 1
+            sentiment = "Negative"
+
+        truncated_text = comment_text if len(comment_text) <= 200 else comment_text[:100] + "..."
+        details.append({
+            "extracted_text": truncated_text,
+            "sentiment": sentiment
+        })
+
+    logger.info("Final Sentiment counts: %s", {"positive": positive_count, "neutral": neutral_count, "negative": negative_count})
+    return {"positive": positive_count, "neutral": neutral_count, "negative": negative_count, "details": details}
+
+
+'''
+def analyze_comments_sentiment(json_data: str) -> dict:
+    """
+    Analyzes sentiment of comments from uploaded JSON data.
+    Expects JSON data in one of the following formats:
+      - A JSON array of objects
+      - A single JSON object (which will be wrapped into a list)
+      - Line-separated JSON objects
+    Only the "value" field under "Comment" will be used for analysis.
+    Returns counts of 'Positive', 'Negative', and 'Neutral' sentiments along with detailed results.
+    """
+    data = []
+    try:
+        data = json.loads(json_data)
+        if isinstance(data, dict):
+            data = [data]
+        elif not isinstance(data, list):
+            raise ValueError("Parsed JSON is not a list or dict.")
+    except Exception as e:
+        logger.warning("Full JSON parse failed, attempting line-by-line parsing. Error: %s", e)
+        for line in json_data.strip().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            if line.endswith(','):
+                line = line[:-1]
+            try:
+                item = json.loads(line)
+                data.append(item)
+            except Exception as ex:
+                logger.warning("Skipping line due to error: %s", ex)
+                continue
+
+    if not data:
+        logger.error("No valid JSON objects found in the uploaded file.")
+        return {"error": "No valid JSON objects found in the uploaded file."}
+
+    positive_count = 0
+    negative_count = 0
+    neutral_count = 0
+    details = []  # Store detailed results
+
+    for item in data:
+        try:
+            comment_text = item["string_map_data"]["Comment"]["value"]
+        except KeyError:
+            continue
+
+        if not isinstance(comment_text, str) or not comment_text.strip():
+            continue
+
         processed_text = preprocess(comment_text)
         try:
             encoded_input = tokenizer(processed_text, return_tensors='pt')
@@ -251,12 +335,107 @@ def analyze_comments_sentiment(json_data: str) -> dict:
         except Exception as ex:
             logger.warning("Error processing comment '%s': %s", comment_text, ex)
             continue
-        
+
         if top_label == "Positive":
             positive_count += 1
-        else:
-            # Treat both 'Neutral' and 'Negative' as Negative.
+            sentiment = "Positive"
+        elif top_label == "Negative":
             negative_count += 1
+            sentiment = "Negative"
+        elif top_label == "Neutral":
+            neutral_count += 1
+            sentiment = "Neutral"
+        else:
+            negative_count += 1
+            sentiment = "Negative"
+
+        truncated_text = comment_text if len(comment_text) <= 200 else comment_text[:100] + "..."
+        details.append({
+            "extracted_text": truncated_text,
+            "sentiment": sentiment
+        })
+
+    logger.info("Final Sentiment counts: %s", {"positive": positive_count, "negative": negative_count, "neutral": neutral_count})
+    return {"positive": positive_count, "negative": negative_count, "neutral": neutral_count, "details": details}
+
+'''
+'''
+def analyze_comments_sentiment(json_data: str) -> dict:
+    """
+    Analyzes sentiment of comments from uploaded JSON data.
+    Expects JSON data in one of the following formats:
+      - A JSON array of objects
+      - A single JSON object (which will be wrapped into a list)
+      - Line-separated JSON objects
+    Only the "value" field under "Comment" will be used for analysis.
+    Returns counts of 'Positive' and 'Negative' sentiments along with detailed results.
+    Note: 'Neutral' is treated as 'Negative'.
+    """
+    data = []
+    try:
+        data = json.loads(json_data)
+        if isinstance(data, dict):
+            data = [data]
+        elif not isinstance(data, list):
+            raise ValueError("Parsed JSON is not a list or dict.")
+    except Exception as e:
+        logger.warning("Full JSON parse failed, attempting line-by-line parsing. Error: %s", e)
+        for line in json_data.strip().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            if line.endswith(','):
+                line = line[:-1]
+            try:
+                item = json.loads(line)
+                data.append(item)
+            except Exception as ex:
+                logger.warning("Skipping line due to error: %s", ex)
+                continue
+
+    if not data:
+        logger.error("No valid JSON objects found in the uploaded file.")
+        return {"error": "No valid JSON objects found in the uploaded file."}
+
+    positive_count = 0
+    negative_count = 0
+    details = []  # Store detailed results
+
+    for item in data:
+        try:
+            comment_text = item["string_map_data"]["Comment"]["value"]
+        except KeyError:
+            continue
+
+        if not isinstance(comment_text, str) or not comment_text.strip():
+            continue
+
+        processed_text = preprocess(comment_text)
+        try:
+            encoded_input = tokenizer(processed_text, return_tensors='pt')
+            output = model(**encoded_input)
+            scores = output[0][0].detach().numpy()
+            scores = softmax(scores)
+            ranking = np.argsort(scores)[::-1]
+            top_label = config.id2label[ranking[0]]
+        except Exception as ex:
+            logger.warning("Error processing comment '%s': %s", comment_text, ex)
+            continue
+
+        if top_label == "Positive":
+            positive_count += 1
+            sentiment = "Positive"
+        else:
+            negative_count += 1
+            sentiment = "Negative"
+
+        # Use Python slicing to truncate the text if needed.
+        truncated_text = comment_text if len(comment_text) <= 200 else comment_text[:100] + "..."
+        details.append({
+            "extracted_text": truncated_text,
+            "sentiment": sentiment
+        })
 
     logger.info("Final Sentiment counts: %s", {"positive": positive_count, "negative": negative_count})
-    return {"positive": positive_count, "negative": negative_count}
+    return {"positive": positive_count, "negative": negative_count, "details": details}
+'''

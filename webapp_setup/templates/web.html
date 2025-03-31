@@ -5,84 +5,161 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Maṉa Landing Page</title>
   <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-white text-gray-800">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <style>
+    :root {
+      --calm-bg: #E0F7FA;        /* Pastel cyan background */
+      --calm-accent: #B2EBF2;    /* Lighter cyan accent */
+      --soft-green: #A7F3D0;
+      --soft-blue: #B3E5FC;
+    }
+    .hero-bg {
+      background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
+    }
+    /* Page wrapper ensures footer stays at bottom */
+    .page-wrapper {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .main-content {
+      flex: 1;
+    }
+    /* Translucent header */
+    .translucent-header {
+      background-color: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(4px);
+    }
+    /* Hero overlay with calm color */
+    .hero-overlay {
+      background-color: rgba(178, 235, 242, 0.5); /* using --calm-accent with 50% opacity */
+    }
+    /* Custom scrollbar */
+    html, body {
+      min-height: 100%;
+    }
+    /* Translucent logo styling */
+    .translucent-logo {
+      position: absolute;
+      opacity: 0.3; /* Makes the image translucent */
+      z-index: 0; /* Ensures it stays in the background */
+      pointer-events: none; /* Prevents interaction with the logo */
+    }
 
-  <!-- Top bar with contact info -->
-  <div class="bg-gray-100 text-sm py-2">
-    <div class="container mx-auto flex items-center justify-between px-4">
-      <div class="flex items-center space-x-4">
-        <span class="text-gray-600">contact@example.com</span>
-        <span class="text-gray-600">|</span>
-        <span class="text-gray-600">1 5599 5588 55</span>
-      </div>
-      <div class="flex items-center space-x-4">
-        <!-- Social Icons (replace # with real links) -->
-        <a href="#" class="text-gray-600 hover:text-gray-900">
-          <!-- Example: Facebook icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M16 8c0-4.418-3.582-8-8-8S0 3.582 0 8c0 3.937 2.861 7.195 6.602 7.873v-5.57H4.672V8h1.93V6.234c0-1.91 1.143-2.96 2.891-2.96.84 0 1.72.15 1.72.15v1.891H9.43c-.94 0-1.234.58-1.234 1.176V8h2.102l-.336 2.303H8.196v5.57C11.937 15.195 16 11.937 16 8z"/>
-          </svg>
-        </a>
-        <a href="#" class="text-gray-600 hover:text-gray-900">
-          <!-- Example: Twitter icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.143 0-.284-.006-.425A6.67 6.67 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.084.797A3.286 3.286 0 0 0 7.875 4.03c0 .258.03.51.087.75A9.325 9.325 0 0 1 1.114 2.1 3.284 3.284 0 0 0 2.13 6.13a3.203 3.203 0 0 1-1.486-.41v.04c0 1.533 1.092 2.81 2.543 3.098a3.203 3.203 0 0 1-.865.115c-.212 0-.418-.02-.62-.058a3.286 3.286 0 0 0 3.067 2.277 6.588 6.588 0 0 1-4.067 1.403c-.264 0-.524-.015-.78-.046A9.344 9.344 0 0 0 5.026 15z"/>
-          </svg>
-        </a>
-        <!-- More icons... -->
+    /* Top-left logo */
+    .logo-top-left {
+      top: 0;
+      left: 1;
+      transform: rotate(-9deg); /* Rotates the logo slightly */
+      width: 500px; /* Adjust size as needed */
+    }
+
+    /* Bottom-right logo */
+    .logo-bottom-right {
+      bottom: 0;
+      right: 0;
+      transform: rotate(160deg); /* Rotates the logo slightly */
+      width: 500px; /* Adjust size as needed */
+    }
+  </style>
+</head>
+<body class="hero-bg text-gray-800 font-sans">
+    <!-- Translucent logos -->
+  <img src="/static/assets/logo.png" alt="Maṉa Logo" class="translucent-logo logo-top-left" />
+  <img src="/static/assets/logo.png" alt="Maṉa Logo" class="translucent-logo logo-bottom-right" />
+  <div class="page-wrapper">
+    <!-- Top bar with contact info -->
+    <div class="bg-gray-100 text-sm py-2">
+      <div class="container mx-auto flex items-center justify-between px-4">
+        <div class="flex items-center space-x-4">
+          <span class="text-gray-600">contact@example.com</span>
+          <span class="text-gray-600">|</span>
+          <span class="text-gray-600">1 5599 5588 55</span>
+        </div>
+        <div class="flex items-center space-x-4">
+          <!-- Social Icons with ARIA labels -->
+          <a href="#" class="text-gray-600 hover:text-gray-900" aria-label="Facebook">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M16 8c0-4.418-3.582-8-8-8S0 3.582 0 8c0 3.937 2.861 7.195 6.602 7.873v-5.57H4.672V8h1.93V6.234c0-1.91 1.143-2.96 2.891-2.96.84 0 1.72.15 1.72.15v1.891H9.43c-.94 0-1.234.58-1.234 1.176V8h2.102l-.336 2.303H8.196v5.57C11.937 15.195 16 11.937 16 8z"/>
+            </svg>
+          </a>
+          <a href="#" class="text-gray-600 hover:text-gray-900" aria-label="Twitter">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.143 0-.284-.006-.425A6.67 6.67 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.084.797A3.286 3.286 0 0 0 7.875 4.03c0 .258.03.51.087.75A9.325 9.325 0 0 1 1.114 2.1 3.284 3.284 0 0 0 2.13 6.13a3.203 3.203 0 0 1-1.486-.41v.04c0 1.533 1.092 2.81 2.543 3.098a3.203 3.203 0 0 1-.865.115c-.212 0-.418-.02-.62-.058a3.286 3.286 0 0 0 3.067 2.277 6.588 6.588 0 0 1-4.067 1.403c-.264 0-.524-.015-.78-.046A9.344 9.344 0 0 0 5.026 15z"/>
+            </svg>
+          </a>
+        </div>
       </div>
     </div>
+
+    <!-- Navigation with translucent header -->
+    <header class="bg-white/90 shadow-md sticky top-0 z-50" role="banner" aria-label="Main Navigation">
+      <nav class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="/" class="flex items-center gap-2 text-teal-800 hover:text-teal-800" aria-label="Home">
+          <img src="/static/assets/logo.png" alt="Maṉa Logo" class="h-8 w-auto mr-2"/>
+          <span class="text-2xl font-bold">Maṉa</span>
+        </a>
+        <div class="flex gap-6 text-gray-600">
+          <a href="/" class="text-gray-600 hover:text-gray-900" aria-label="Home">Home</a>
+          <a href="/Overview" class="text-gray-600 hover:text-gray-900" aria-label="About Project">Maṉa Services</a>
+          <!--<a href="/Research" class="text-gray-600 hover:text-gray-900" aria-label="Research">Research</a>-->
+          <a href="/Research#portfolio" class="text-gray-600 hover:text-gray-900" aria-label="Portfolio">Portfolio</a>
+          <a href="/Research#team" class="text-gray-600 hover:text-gray-900" aria-label="Team">Team</a>
+        </div>
+      </nav>
+    </header>
+    
+
+    <!-- Hero Section with translucent overlay -->
+    <section class="relative flex items-center justify-center bg-cover bg-center"
+      style="background-image: url('https://images.unsplash.com/photo-1495314736024-fa88f6b5571b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'); height: 70vh;">
+      <div class="absolute inset-0 hero-overlay"></div>
+      <div class="relative z-10 text-center px-4">
+        <h2 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+          Know your <span class="text-green-600">Maṉa</span> <br/>
+          <span class="text-green-600">Make Mental Health Well-being!</span>
+        </h2>
+        <p class="text-lg text-gray-700 max-w-2xl mx-auto mb-8">
+          Take a step towards a healthier mind and a happier life. We offer support and resources to help you navigate mental health challenges.
+        </p>
+        <div class="flex justify-center space-x-4">
+          <a href="/Overview"
+            class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            aria-label="Get Started">
+            Get Started
+          </a>
+          <a href="/Research"
+            class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            aria-label="Our Research">
+            Our Research
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer fixed at bottom -->
+    <footer class="bg-gray-200 py-4" role="contentinfo" aria-label="Site Footer">
+      <div class="container mx-auto text-center text-gray-600">
+        &copy; 2025 Maṉa. All rights reserved.
+      </div>
+    </footer>
   </div>
 
-  <!-- Navigation -->
-  <nav class="bg-white shadow">
-    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="/" class="flex items-center">
-        <img src="/static/assets/logo.png" alt="Maṉa Logo" class="h-8 w-auto mr-2" />
-        <span class="text-2xl font-bold text-blue-600">Maṉa</span>
-      </a>
-      <div class="hidden md:flex space-x-6">
-        <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
-        <a href="/Overview" class="text-gray-600 hover:text-gray-900">About Project</a>
-        <a href="/Research#portfolio" class="text-gray-600 hover:text-gray-900">Portfolio</a>
-        <a href="/Research#team" class="text-gray-600 hover:text-gray-900">Team</a>
-      </div>
-    </div>
-  </nav>
 
-  <!-- Hero Section -->
-  <section class="relative flex items-center justify-center bg-cover bg-center"
-    style="background-image: url('https://images.unsplash.com/photo-1495314736024-fa88f6b5571b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80'); height: 70vh;">
-    <div class="absolute inset-0 bg-white bg-opacity-50"></div>
-    <div class="relative z-10 text-center px-4">
-      <h2 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-        Know your <span class="text-green-600">Maṉa</span> <br/>
-        <span class="text-green-600">Make Mental Health Well-being!</span>
-      </h2>
-      <p class="text-lg text-gray-700 max-w-2xl mx-auto mb-8">
-        Take a step towards a healthier mind and a happier life. We offer support
-        and resources to help you navigate mental health challenges.
-      </p>
-      <div class="flex justify-center space-x-4">
-        <a href="/Overview"
-          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-          Get Started
-        </a>
-        <a href="/Research"
-          class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-          Our Research
-          </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="bg-gray-200 py-4" role="contentinfo" aria-label="Site Footer">
-    <div class="container mx-auto text-center text-gray-600">
-      &copy; 2025 Maṉa. All rights reserved.
-    </div>
-  </footer>
-
+  <script>
+    // Tailwind CSS configuration for custom colors
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'calm-bg': 'var(--calm-bg)',
+            'calm-accent': 'var(--calm-accent)',
+            'soft-green': 'var(--soft-green)',
+            'soft-blue': 'var(--soft-blue)',
+          }
+        }
+      }
+    };
+  </script>
 </body>
 </html>

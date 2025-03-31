@@ -5,99 +5,112 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ProjectOverview</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Include Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    .progress-container {
-      width: 100%;
-      max-width: 500px;
+    /* Responsive chart container */
+    .chart-container {
+      position: relative;
       margin: 20px auto;
-    }
-    .progress-bar {
-      height: 30px;
-      border-radius: 5px;
-      text-align: center;
-      line-height: 30px;
-      color: white;
-      font-weight: bold;
-    }
-    .progress-positive {
-      background-color: #34D399;
-    }
-    .progress-negative {
-      background-color: #F87171;
+      width: 100%;
+      max-width: 400px;
+      height: 300px;
     }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
-
   <!-- Navigation -->
-  <nav class="bg-white shadow">
+  <nav class="bg-white shadow sticky top-0 z-50" role="navigation" aria-label="Main Navigation">
     <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="/" class="text-2xl font-bold text-blue-600">Maṉa</a>
+      <a href="/" class="text-2xl font-bold text-blue-600" aria-label="Maṉa Home">Maṉa</a>
       <div class="hidden md:flex space-x-6">
-        <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
-        <a href="#" class="text-gray-600 hover:text-gray-900">Portfolio</a>
-        <a href="#" class="text-gray-600 hover:text-gray-900">Team</a>
+        <a href="/" class="text-gray-600 hover:text-gray-900" aria-label="Home">Home</a>
+        <a href="/Research#portfolio" class="text-gray-600 hover:text-gray-900" aria-label="Portfolio">Portfolio</a>
+        <a href="/Research#collaborators" class="text-gray-600 hover:text-gray-900" aria-label="Collaborators">Collaborators</a>
       </div>
     </div>
   </nav>
 
-  <!-- Project Details -->
-  <section class="container mx-auto px-6 py-12 text-center">
+  <!-- Project Details Section -->
+  <section class="container mx-auto px-4 py-12 text-center">
     <h1 class="text-4xl font-bold text-blue-600 mb-4">Welcome to Maṉa</h1>
     <p class="text-lg text-gray-700 max-w-3xl mx-auto mb-6">
-      Maṉa is a web-based application for mental health analysis via social media. Our system analyzes your social media comments using advanced NLP models and offers personalized guidance.
+      Maṉa is a web-based application for mental health analysis via social media.
+      Our system analyzes your social media comments using advanced NLP models and offers personalized guidance.
     </p>
 
-    <!-- Call-to-action Buttons -->
+    <!-- Call-to-Action Buttons -->
     <div class="mt-8 space-y-4">
-      <a href="/Manachat"
-         class="block px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-lg font-semibold">
+      <a href="/Manachat" class="block px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-lg font-semibold" aria-label="Start MaṉaChat">
          Get Started with MaṉaChat
       </a>
-      <a href="/ManaNow"
-         class="block px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-lg font-semibold">
+      <a href="/ManaNow" class="block px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-lg font-semibold" aria-label="Start MaṉaNow">
          Get Started with MaṉaNow
       </a>
     </div>
 
-    <!-- File Upload Option with Sentiment Visualization -->
-    <div class="mt-8 bg-white p-4 rounded-lg shadow">
+    <!-- File Upload Section with Sentiment Visualization -->
+    <div class="mt-8 bg-white p-4 rounded-lg shadow" aria-label="File Upload and Sentiment Analysis">
       <h2 class="text-xl font-semibold mb-2">Upload Your Comments (JSON)</h2>
       <p class="text-gray-600 mb-4">
         If you have exported your social media comments (Instagram, Twitter, etc.) in JSON format, upload your file below.
-        Only the "value" field under "Comment" will be used for analysis.
+        <strong>Only the "value" field under "Comment" will be used for analysis.</strong>
       </p>
-      <input type="file" id="fileUpload" accept=".json" class="mb-4 mx-auto block">
-      <button onclick="uploadComments()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+      <label for="fileUpload" class="sr-only">Upload JSON file</label>
+      <input type="file" id="fileUpload" accept=".json" class="mb-4 mx-auto block" aria-label="Upload JSON file">
+      <button onclick="uploadComments()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" aria-label="Upload and Analyze">
         Upload and Analyze
       </button>
-      <div id="uploadResult" class="mt-4 text-gray-700"></div>
+      <div id="uploadResult" class="mt-4 text-gray-700" aria-live="polite"></div>
       
-      <!-- Progress Bars Container -->
-      <div id="progressBars" class="progress-container hidden">
-        <div id="positiveBar" class="progress-bar progress-positive" style="width: 0%">0%</div>
-        <div id="negativeBar" class="progress-bar progress-negative mt-2" style="width: 0%">0%</div>
+      <!-- Chart Container -->
+      <div id="chartContainer" class="chart-container hidden" aria-label="Sentiment Analysis Chart">
+        <canvas id="sentimentChart"></canvas>
       </div>
       
-      <!-- Trigger button for assessment if negative sentiment is higher -->
+      <!-- Assessment Trigger Button -->
       <div id="triggerAssessment" class="mt-4 hidden">
-        <button onclick="window.location.href='/ManaNow'" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+        <button onclick="window.location.href='/ManaNow'" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" aria-label="Proceed to Mental Health Assessment">
           Proceed to Mental Health Assessment
         </button>
+      </div>
+      
+      <!-- Detailed Sentiment Table Section -->
+      <div id="sentimentTableSection" class="mt-8 hidden" aria-label="Detailed Sentiment Analysis">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Detailed Sentiment Analysis</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="py-2 px-4 text-left text-gray-600 font-medium">Extracted Text</th>
+                <th class="py-2 px-4 text-left text-gray-600 font-medium">Sentiment</th>
+              </tr>
+            </thead>
+            <tbody id="sentimentTableBody">
+              <!-- Table rows inserted dynamically -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Footer -->
-  <footer class="bg-gray-200 py-4 mt-8">
+  <footer class="bg-gray-200 py-4 mt-8" role="contentinfo" aria-label="Site Footer">
     <div class="container mx-auto px-4 text-center text-gray-600">
       &copy; 2025 Maṉa. All rights reserved.
     </div>
   </footer>
 
+  <!-- JavaScript -->
   <script>
+    let sentimentChart = null;
+
     async function uploadComments() {
       const fileInput = document.getElementById('fileUpload');
+      const uploadResult = document.getElementById('uploadResult');
+      const triggerAssessment = document.getElementById('triggerAssessment');
+
       if (!fileInput.files.length) {
         alert("Please select a file to upload.");
         return;
@@ -105,6 +118,7 @@
       const file = fileInput.files[0];
       const formData = new FormData();
       formData.append("file", file);
+
       try {
         const response = await fetch('/api/upload-comments', {
           method: 'POST',
@@ -116,40 +130,93 @@
         }
         const result = await response.json();
         if (result.error) {
-          document.getElementById('uploadResult').textContent = "Error processing file: " + result.error;
+          uploadResult.textContent = "Error processing file: " + result.error;
           return;
         }
-        document.getElementById('uploadResult').textContent =
-          `Sentiment Analysis - Positive: ${result.positive}, Negative: ${result.negative}`;
-        showProgressBars(result.positive, result.negative);
-        // Trigger assessment if negative count exceeds positive count.
+        // Display overall sentiment counts
+        uploadResult.textContent =
+          `Sentiment Analysis - Positive: ${result.positive}, Neutral: ${result.neutral}, Negative: ${result.negative}`;
+        
+        // Display the doughnut chart
+        showDoughnutChart(result.positive, result.neutral, result.negative);
+        
+        // Show trigger and detailed table if negative exceeds positive (or as per your criteria)
         if (result.negative > result.positive) {
-          document.getElementById('triggerAssessment').classList.remove('hidden');
+          triggerAssessment.classList.remove('hidden');
+          if (result.details && result.details.length > 0) {
+            showSentimentTable(result.details);
+          }
         } else {
-          document.getElementById('triggerAssessment').classList.add('hidden');
+          triggerAssessment.classList.add('hidden');
+          document.getElementById('sentimentTableSection').classList.add('hidden');
         }
       } catch (error) {
         console.error("Upload error:", error);
-        document.getElementById('uploadResult').textContent = "Error uploading file. Please try again.";
+        uploadResult.textContent = "Error uploading file. Please try again.";
+        if (sentimentChart) sentimentChart.destroy();
+        triggerAssessment.classList.add('hidden');
+        document.getElementById('sentimentTableSection').classList.add('hidden');
       }
     }
 
-    function showProgressBars(positive, negative) {
-      const progressBars = document.getElementById('progressBars');
-      progressBars.classList.remove('hidden');
-      
-      const total = positive + negative;
-      const positivePercent = total ? Math.round((positive / total) * 100) : 0;
-      const negativePercent = total ? Math.round((negative / total) * 100) : 0;
-      
-      const positiveBar = document.getElementById('positiveBar');
-      const negativeBar = document.getElementById('negativeBar');
-      
-      positiveBar.style.width = positivePercent + "%";
-      positiveBar.textContent = "Positive: " + positivePercent + "%";
-      
-      negativeBar.style.width = negativePercent + "%";
-      negativeBar.textContent = "Negative: " + negativePercent + "%";
+    function showDoughnutChart(positive, neutral, negative) {
+      const chartContainer = document.getElementById('chartContainer');
+      const ctx = document.getElementById('sentimentChart').getContext('2d');
+      if (sentimentChart) sentimentChart.destroy();
+      chartContainer.classList.remove('hidden');
+      sentimentChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Positive', 'Neutral', 'Negative'],
+          datasets: [{
+            data: [positive, neutral, negative],
+            backgroundColor: ['#34D399', '#60A5FA', '#F87171'],
+            borderWidth: 0,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#4B5563',
+                font: { size: 14 },
+                padding: 20
+              }
+            },
+            tooltip: {
+              enabled: true,
+              backgroundColor: '#1F2937',
+              bodyColor: '#F9FAFB',
+              titleColor: '#F9FAFB'
+            }
+          },
+          animation: { duration: 1000, easing: 'easeOutQuart' }
+        }
+      });
+    }
+
+    function showSentimentTable(details) {
+      const tableSection = document.getElementById('sentimentTableSection');
+      const tableBody = document.getElementById('sentimentTableBody');
+      tableBody.innerHTML = "";
+      details.forEach(item => {
+        const row = document.createElement('tr');
+        row.className = "border-t";
+        const textCell = document.createElement('td');
+        textCell.className = "py-2 px-4";
+        textCell.textContent = item.extracted_text || "N/A";
+        const sentimentCell = document.createElement('td');
+        sentimentCell.className = "py-2 px-4";
+        sentimentCell.textContent = item.sentiment || "Negative";
+        row.appendChild(textCell);
+        row.appendChild(sentimentCell);
+        tableBody.appendChild(row);
+      });
+      tableSection.classList.remove('hidden');
     }
   </script>
 </body>
