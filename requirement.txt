@@ -8,3 +8,4 @@ uvicorn
 numpy
 scipy
 pandas
+reportlab

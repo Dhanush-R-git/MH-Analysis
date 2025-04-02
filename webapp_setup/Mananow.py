@@ -1,5 +1,6 @@
 import os
 import logging
+import requests # type: ignore
 from huggingface_hub import InferenceClient  # type: ignore
 from dotenv import load_dotenv  # type: ignore
 from typing import List, Dict
@@ -17,20 +18,25 @@ logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
-HF_INFERENCE_API_KEY = os.getenv("HF_INFERENCE_API_KEY")
-HUGGINGFACE_TOKEN1 = os.getenv("HUGGINGFACE_TOKEN1")
-if not HUGGINGFACE_TOKEN1:
+
+API_URL = "https://router.huggingface.co/together/v1/chat/completions"
+
+HF_TOKEN = os.getenv("HF_INFERENCE_API_KEY")
+if not HF_TOKEN:
     raise ValueError("Hugging Face token is missing. Set the environment variable")
-if not HF_INFERENCE_API_KEY:
-    raise ValueError("HF_INFERENCE_API_KEY missing. Please set it.")
 
 
-
-mentanow_client = InferenceClient(
-    provider="together",
-    api_key=os.getenv("HF_INFERENCE_API_KEY")  # Ensure this token has read permissions
-)
-
+'''
+try:
+    client = InferenceClient(
+        model="deepseek-ai/DeepSeek-R1",
+        provider="together",
+        api_key=HF_INFERENCE_API_KEY  # Ensure this token has read permissions
+    )
+except Exception as e:
+    logger.error(f"Failed to create InferenceClient: {str(e)}")
+    logger.info("Please check your API key and model name.")
+'''
 
 # Extended question flow (10 questions)
 QUESTION_FLOW = [
@@ -112,7 +118,7 @@ def build_mentanow_prompt(user_answers: List[Dict]) -> str:
     )
     return f"""Mental Health Assessment Summary:
 {summary}
-
+"GENERATE A Complete REPORT BASED ON MENTAL HEALTH ASSESSMENT SUMMARY OF USER."
 Please provide:
 1. A concise analysis of the user's mental state.
 2. Three actionable recommendations.
@@ -128,63 +134,69 @@ def generate_mentanow_report(user_answers: List[Dict]) -> str:
     """Generate assessment report with error handling using meta-llama/Llama-3.2-3B-Instruct."""
     try:
         prompt = build_mentanow_prompt(user_answers)
-        logger.debug(f"Generated prompt:\n{prompt}")
+        logger.info(f"Generated prompt:\n{prompt}")
         
-        # Call the inference client using the Together provider and the meta-llama model.
-        completion = mentanow_client.chat.completions.create(
-            model="meta-llama/Llama-3.2-3B-Instruct",
-            messages=[{"role": "system", "content": prompt}],
-            max_tokens=400,
-            temperature=0.7,
-        )
+        headers = {
+            "Authorization": f"Bearer {HF_TOKEN}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "messages": [{"role": "user", "content": prompt}],
+            "model": "deepseek-ai/DeepSeek-R1",
+            "max_tokens": 500,
+            "temperature": 0.7
+        }
+
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=30)
         
-        return completion.choices[0].message.content.strip()
+        if response.status_code != 200:
+            logger.error(f"API Error: {response.status_code} - {response.text}")
+            return "Error generating report. Please try again."
+
+        return response.json()['choices'][0]['message']['content'].strip()
+    
     except Exception as e:
         logger.error(f"Report generation failed: {str(e)}")
         return "We encountered an error generating your report. Please try again later."
-
-
-
-'''def generate_mentanow_report(user_answers: List[Dict]) -> str:
-    """Generate assessment report with error handling."""
-    try:
-        prompt = build_mentanow_prompt(user_answers)
-        logger.debug(f"Generated prompt:\n{prompt}")
-        
-        # Using run() for text generation. Adjust parameters as needed.
-        response = mentanow_client.run(
-            prompt,
-            task="text-generation",
-            parameters={"max_tokens": 400, "temperature": 0.7}
+'''
+        # Call the inference client using the Together provider and the meta-llama model.
+        completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user", 
+                    "content": prompt
+                }
+            ],
+            max_tokens=500,
+            temperature=0.7,
         )
-        # Assuming the response is a dict with a "generated_text" key.
-        generated_text = response.get("generated_text", "")
-        if not generated_text:
-            raise ValueError("Empty response from inference client.")
-        return generated_text.strip()
+        logger.info(f"Generated report:\n{completion.choices[0].message.content.strip()}")
+        return completion.choices[0].message.content.strip()
+        
     except Exception as e:
         logger.error(f"Report generation failed: {str(e)}")
-        return "We encountered an error generating your report. Please try again later.'''
+        if "401" in str(e):
+            return "Report generation failed due to invalid credentials. Please check your HF_INFERENCE_API_KEY."
+        return "We encountered an error generating your report. Please try again later."
+'''
 
-# -------- New Code for File Upload and Sentiment Analysis --------
+# -------- New Code for File Upload and Sentiment Analysis -------- token=HUGGINGFACE_TOKEN1
 
 try:
     MODEL = "cardiffnlp/twitter-roberta-base-sentiment-latest"
-    tokenizer = AutoTokenizer.from_pretrained(MODEL, token=HUGGINGFACE_TOKEN1)
-    config = AutoConfig.from_pretrained(MODEL, token=HUGGINGFACE_TOKEN1)
-    model = AutoModelForSequenceClassification.from_pretrained(MODEL, token=HUGGINGFACE_TOKEN1)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL)
+    config = AutoConfig.from_pretrained(MODEL)
+    model = AutoModelForSequenceClassification.from_pretrained(MODEL)
 except Exception as e:
     logger.error(f"Failed to load sentiment analysis model: {str(e)}")
     
 def preprocess(text: str) -> str:
     """Preprocess text by lowercasing, and replacing usernames and URLs with placeholders."""
-    text = text.lower()  # Convert text to lowercase for consistency.
+    #text = text.lower()  # Convert text to lowercase for consistency.
     new_text = []
     for t in text.split():
-        if t.startswith('@') and len(t) > 1:
-            t = '@user'
-        elif t.startswith('http'):
-            t = 'http'
+        t = '@user' if t.startswith('@') and len(t) > 1 else t
+        t = 'http' if t.startswith('http') else t
         new_text.append(t)
     return " ".join(new_text)
 
@@ -247,195 +259,31 @@ def analyze_comments_sentiment(json_data: str) -> dict:
             ranking = np.argsort(scores)[::-1]
             top_label = config.id2label[ranking[0]]
             # Debug log: print scores for each label
-            logger.debug("Text: '%s' | Scores: %s | Top label: %s", comment_text, scores, top_label)
+            logger.info("Text: '%s' | Scores: %s | Top label: %s", comment_text, scores, top_label)
         except Exception as ex:
             logger.warning("Error processing comment '%s': %s", comment_text, ex)
             continue
 
         # Count each sentiment category separately
-        if top_label == "Positive":
+        if top_label == "positive":
             positive_count += 1
-            sentiment = "Positive"
-        elif top_label == "Neutral":
+            sentiment = "positive"
+        elif top_label == "neutral":
             neutral_count += 1
-            sentiment = "Neutral"
+            sentiment = "neutral"
         else:
             negative_count += 1
-            sentiment = "Negative"
+            sentiment = "negative"
 
         truncated_text = comment_text if len(comment_text) <= 200 else comment_text[:100] + "..."
         details.append({
             "extracted_text": truncated_text,
             "sentiment": sentiment
         })
-
+    
     logger.info("Final Sentiment counts: %s", {"positive": positive_count, "neutral": neutral_count, "negative": negative_count})
     return {"positive": positive_count, "neutral": neutral_count, "negative": negative_count, "details": details}
 
-
-'''
-def analyze_comments_sentiment(json_data: str) -> dict:
-    """
-    Analyzes sentiment of comments from uploaded JSON data.
-    Expects JSON data in one of the following formats:
-      - A JSON array of objects
-      - A single JSON object (which will be wrapped into a list)
-      - Line-separated JSON objects
-    Only the "value" field under "Comment" will be used for analysis.
-    Returns counts of 'Positive', 'Negative', and 'Neutral' sentiments along with detailed results.
-    """
-    data = []
-    try:
-        data = json.loads(json_data)
-        if isinstance(data, dict):
-            data = [data]
-        elif not isinstance(data, list):
-            raise ValueError("Parsed JSON is not a list or dict.")
-    except Exception as e:
-        logger.warning("Full JSON parse failed, attempting line-by-line parsing. Error: %s", e)
-        for line in json_data.strip().splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            if line.endswith(','):
-                line = line[:-1]
-            try:
-                item = json.loads(line)
-                data.append(item)
-            except Exception as ex:
-                logger.warning("Skipping line due to error: %s", ex)
-                continue
-
-    if not data:
-        logger.error("No valid JSON objects found in the uploaded file.")
-        return {"error": "No valid JSON objects found in the uploaded file."}
-
-    positive_count = 0
-    negative_count = 0
-    neutral_count = 0
-    details = []  # Store detailed results
-
-    for item in data:
-        try:
-            comment_text = item["string_map_data"]["Comment"]["value"]
-        except KeyError:
-            continue
-
-        if not isinstance(comment_text, str) or not comment_text.strip():
-            continue
-
-        processed_text = preprocess(comment_text)
-        try:
-            encoded_input = tokenizer(processed_text, return_tensors='pt')
-            output = model(**encoded_input)
-            scores = output[0][0].detach().numpy()
-            scores = softmax(scores)
-            ranking = np.argsort(scores)[::-1]
-            top_label = config.id2label[ranking[0]]
-        except Exception as ex:
-            logger.warning("Error processing comment '%s': %s", comment_text, ex)
-            continue
-
-        if top_label == "Positive":
-            positive_count += 1
-            sentiment = "Positive"
-        elif top_label == "Negative":
-            negative_count += 1
-            sentiment = "Negative"
-        elif top_label == "Neutral":
-            neutral_count += 1
-            sentiment = "Neutral"
-        else:
-            negative_count += 1
-            sentiment = "Negative"
-
-        truncated_text = comment_text if len(comment_text) <= 200 else comment_text[:100] + "..."
-        details.append({
-            "extracted_text": truncated_text,
-            "sentiment": sentiment
-        })
-
-    logger.info("Final Sentiment counts: %s", {"positive": positive_count, "negative": negative_count, "neutral": neutral_count})
-    return {"positive": positive_count, "negative": negative_count, "neutral": neutral_count, "details": details}
-
-'''
-'''
-def analyze_comments_sentiment(json_data: str) -> dict:
-    """
-    Analyzes sentiment of comments from uploaded JSON data.
-    Expects JSON data in one of the following formats:
-      - A JSON array of objects
-      - A single JSON object (which will be wrapped into a list)
-      - Line-separated JSON objects
-    Only the "value" field under "Comment" will be used for analysis.
-    Returns counts of 'Positive' and 'Negative' sentiments along with detailed results.
-    Note: 'Neutral' is treated as 'Negative'.
-    """
-    data = []
-    try:
-        data = json.loads(json_data)
-        if isinstance(data, dict):
-            data = [data]
-        elif not isinstance(data, list):
-            raise ValueError("Parsed JSON is not a list or dict.")
-    except Exception as e:
-        logger.warning("Full JSON parse failed, attempting line-by-line parsing. Error: %s", e)
-        for line in json_data.strip().splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            if line.endswith(','):
-                line = line[:-1]
-            try:
-                item = json.loads(line)
-                data.append(item)
-            except Exception as ex:
-                logger.warning("Skipping line due to error: %s", ex)
-                continue
-
-    if not data:
-        logger.error("No valid JSON objects found in the uploaded file.")
-        return {"error": "No valid JSON objects found in the uploaded file."}
-
-    positive_count = 0
-    negative_count = 0
-    details = []  # Store detailed results
-
-    for item in data:
-        try:
-            comment_text = item["string_map_data"]["Comment"]["value"]
-        except KeyError:
-            continue
-
-        if not isinstance(comment_text, str) or not comment_text.strip():
-            continue
-
-        processed_text = preprocess(comment_text)
-        try:
-            encoded_input = tokenizer(processed_text, return_tensors='pt')
-            output = model(**encoded_input)
-            scores = output[0][0].detach().numpy()
-            scores = softmax(scores)
-            ranking = np.argsort(scores)[::-1]
-            top_label = config.id2label[ranking[0]]
-        except Exception as ex:
-            logger.warning("Error processing comment '%s': %s", comment_text, ex)
-            continue
-
-        if top_label == "Positive":
-            positive_count += 1
-            sentiment = "Positive"
-        else:
-            negative_count += 1
-            sentiment = "Negative"
-
-        # Use Python slicing to truncate the text if needed.
-        truncated_text = comment_text if len(comment_text) <= 200 else comment_text[:100] + "..."
-        details.append({
-            "extracted_text": truncated_text,
-            "sentiment": sentiment
-        })
-
-    logger.info("Final Sentiment counts: %s", {"positive": positive_count, "negative": negative_count})
-    return {"positive": positive_count, "negative": negative_count, "details": details}
-'''
+# Example test input for analyze_comments_sentiment
+#test_json_data = '[{"string_map_data": {"Comment": {"value": "This is a great product!"}}}]'
+#print(analyze_comments_sentiment(test_json_data))

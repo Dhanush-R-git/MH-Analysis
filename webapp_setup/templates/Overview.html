@@ -8,10 +8,9 @@
   <!-- Include Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* Responsive chart container */
     .chart-container {
       position: relative;
-      margin: 20px auto;
+      margin: 0 auto;
       width: 100%;
       max-width: 400px;
       height: 300px;
@@ -31,66 +30,121 @@
     </div>
   </nav>
 
-  <!-- Project Details Section -->
-  <section class="container mx-auto px-4 py-12 text-center">
-    <h1 class="text-4xl font-bold text-blue-600 mb-4">Welcome to Maṉa</h1>
-    <p class="text-lg text-gray-700 max-w-3xl mx-auto mb-6">
+  <!-- Main Content -->
+  <section class="container mx-auto px-4 py-12">
+    <h1 class="text-4xl font-bold text-blue-600 text-center mb-8">Welcome to Maṉa</h1>
+    <p class="text-lg text-gray-700 max-w-3xl mx-auto text-center mb-12">
       Maṉa is a web-based application for mental health analysis via social media.
-      Our system analyzes your social media comments using advanced NLP models and offers personalized guidance.
+      Our system uses advanced NLP models to analyze your social media comments and offers personalized guidance.
     </p>
 
-    <!-- Call-to-Action Buttons -->
-    <div class="mt-8 space-y-4">
-      <a href="/Manachat" class="block px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-lg font-semibold" aria-label="Start MaṉaChat">
-         Get Started with MaṉaChat
-      </a>
-      <a href="/ManaNow" class="block px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-lg font-semibold" aria-label="Start MaṉaNow">
-         Get Started with MaṉaNow
-      </a>
+    <!-- Platform Descriptions Box -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12" aria-label="Platform Descriptions">
+      <!-- ManaChat Box -->
+      <div class="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+        <div class="mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M2 3h20v2H2V3zm0 4h20v2H2V7zm0 4h14v2H2v-2zm0 4h20v2H2v-2z"/>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-semibold mb-2">MaṉaChat</h2>
+        <p class="text-gray-700 mb-4 text-center">
+          Get instant, empathetic responses from our chatbot designed to provide quick mental health support and stress reduction tips.
+        </p>
+        <a href="/Manachat" class="px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition" aria-label="Start ManaChat">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M2 3h20v2H2V3zm0 4h20v2H2V7z"/>
+          </svg>
+          Start Chat
+        </a>
+      </div>
+      <!-- ManaNow Box -->
+      <div class="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+        <div class="mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2L1 21h22L12 2zm0 3.84L19.53 19H4.47L12 5.84z"/>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-semibold mb-2">MaṉaNow</h2>
+        <p class="text-gray-700 mb-4 text-center">
+          Dive deeper into your mental health with our detailed assessment. If our analysis shows predominantly negative sentiment,
+          we recommend a full evaluation to help you access professional support.
+        </p>
+        <a href="/ManaNow" class="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition" aria-label="Start ManaNow">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2L1 21h22L12 2zm0 3.84L19.53 19H4.47L12 5.84z"/>
+          </svg>
+          Start Assessment
+        </a>
+      </div>
     </div>
 
-    <!-- File Upload Section with Sentiment Visualization -->
-    <div class="mt-8 bg-white p-4 rounded-lg shadow" aria-label="File Upload and Sentiment Analysis">
-      <h2 class="text-xl font-semibold mb-2">Upload Your Comments (JSON)</h2>
-      <p class="text-gray-600 mb-4">
-        If you have exported your social media comments (Instagram, Twitter, etc.) in JSON format, upload your file below.
-        <strong>Only the "value" field under "Comment" will be used for analysis.</strong>
-      </p>
-      <label for="fileUpload" class="sr-only">Upload JSON file</label>
-      <input type="file" id="fileUpload" accept=".json" class="mb-4 mx-auto block" aria-label="Upload JSON file">
-      <button onclick="uploadComments()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" aria-label="Upload and Analyze">
-        Upload and Analyze
-      </button>
-      <div id="uploadResult" class="mt-4 text-gray-700" aria-live="polite"></div>
-      
-      <!-- Chart Container -->
-      <div id="chartContainer" class="chart-container hidden" aria-label="Sentiment Analysis Chart">
-        <canvas id="sentimentChart"></canvas>
-      </div>
-      
-      <!-- Assessment Trigger Button -->
-      <div id="triggerAssessment" class="mt-4 hidden">
+    <!-- Assessment Trigger Explanation Box (conditionally shown) -->
+    <div id="assessmentExplanation" class="bg-white p-6 rounded-lg shadow mb-12 hidden" aria-label="Assessment Explanation">
+      <h2 class="text-xl font-semibold mb-2">Why Proceed to a Full Assessment?</h2>
+        <p class="text-gray-700 mb-4">
+          Our analysis shows that the overall negative sentiment in your comments is higher than the positive.
+          This may indicate that you are experiencing significant stress or emotional difficulties.
+          A detailed mental health assessment can provide deeper insights and guide you toward the appropriate support and resources.
+        </p>
         <button onclick="window.location.href='/ManaNow'" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" aria-label="Proceed to Mental Health Assessment">
-          Proceed to Mental Health Assessment
+            Proceed to Mental Health Assessment
         </button>
-      </div>
-      
-      <!-- Detailed Sentiment Table Section -->
-      <div id="sentimentTableSection" class="mt-8 hidden" aria-label="Detailed Sentiment Analysis">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Detailed Sentiment Analysis</h3>
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white border border-gray-200 rounded-lg">
-            <thead>
-              <tr class="bg-gray-100">
-                <th class="py-2 px-4 text-left text-gray-600 font-medium">Extracted Text</th>
-                <th class="py-2 px-4 text-left text-gray-600 font-medium">Sentiment</th>
-              </tr>
-            </thead>
-            <tbody id="sentimentTableBody">
-              <!-- Table rows inserted dynamically -->
-            </tbody>
-          </table>
+    </div>
+
+    <!-- Upload & Analysis Box (Two-Column Layout) -->
+    <div class="bg-white p-6 rounded-lg shadow mb-12" aria-label="Upload and Analysis">
+      <div class="flex flex-col md:flex-row gap-6">
+        <!-- Left Column: Upload Controls and Explanation -->
+        <div class="md:w-1/2">
+          <h2 class="text-xl font-semibold mb-2">Upload Your Comments (JSON)</h2>
+          <p class="text-gray-600 mb-4">
+            Export your social media comments (Instagram, Twitter, etc.) in JSON format and upload your file below.
+            <strong>Only the "value" field under "Comment" is used for analysis.</strong>
+          </p>
+          <label for="fileUpload" class="sr-only">Upload JSON file</label>
+          <input type="file" id="fileUpload" accept=".json" class="mb-4 block" aria-label="Upload JSON file">
+          <button onclick="uploadComments()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" aria-label="Upload and Analyze">
+            Upload and Analyze
+          </button>
+          <div id="uploadResult" class="mt-4 text-gray-700" aria-live="polite"></div>
         </div>
+        <div class="mt-4 flex gap-2">
+          <button onclick="saveAnalysis()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700" aria-label="Save Analysis">
+            Save Analysis
+          </button>
+          <button onclick="location.reload()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700" aria-label="Refresh Page">
+            Refresh
+          </button>
+          <button id="downloadReportBtn" onclick="downloadReport()" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 hidden" aria-label="Download Report">
+            Download Report
+          </button>
+        </div>
+        <!-- Right Column: Chart Visualization -->
+        <div class="md:w-1/2 flex items-center justify-center">
+          <div id="chartContainer" class="chart-container hidden" aria-label="Sentiment Analysis Chart">
+            <canvas id="sentimentChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Detailed Sentiment Table Section (conditionally shown) -->
+    <div id="sentimentTableSection" class="bg-white p-6 rounded-lg shadow hidden" aria-label="Detailed Sentiment Analysis">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">Detailed Sentiment Analysis</h3>
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="py-2 px-4 text-left text-gray-600 font-medium">Extracted Text</th>
+              <th class="py-2 px-4 text-left text-gray-600 font-medium">Sentiment</th>
+            </tr>
+          </thead>
+          <tbody id="sentimentTableBody">
+            <!-- Table rows inserted dynamically -->
+          </tbody>
+        </table>
       </div>
     </div>
   </section>
@@ -109,7 +163,7 @@
     async function uploadComments() {
       const fileInput = document.getElementById('fileUpload');
       const uploadResult = document.getElementById('uploadResult');
-      const triggerAssessment = document.getElementById('triggerAssessment');
+      const assessmentExplanation = document.getElementById('assessmentExplanation');
 
       if (!fileInput.files.length) {
         alert("Please select a file to upload.");
@@ -133,28 +187,27 @@
           uploadResult.textContent = "Error processing file: " + result.error;
           return;
         }
-        // Display overall sentiment counts
         uploadResult.textContent =
           `Sentiment Analysis - Positive: ${result.positive}, Neutral: ${result.neutral}, Negative: ${result.negative}`;
         
         // Display the doughnut chart
         showDoughnutChart(result.positive, result.neutral, result.negative);
         
-        // Show trigger and detailed table if negative exceeds positive (or as per your criteria)
+        // If negative exceeds positive, show the assessment explanation and detailed table
         if (result.negative > result.positive) {
-          triggerAssessment.classList.remove('hidden');
+          assessmentExplanation.classList.remove('hidden');
           if (result.details && result.details.length > 0) {
             showSentimentTable(result.details);
           }
         } else {
-          triggerAssessment.classList.add('hidden');
+          assessmentExplanation.classList.add('hidden');
           document.getElementById('sentimentTableSection').classList.add('hidden');
         }
       } catch (error) {
         console.error("Upload error:", error);
         uploadResult.textContent = "Error uploading file. Please try again.";
         if (sentimentChart) sentimentChart.destroy();
-        triggerAssessment.classList.add('hidden');
+        assessmentExplanation.classList.add('hidden');
         document.getElementById('sentimentTableSection').classList.add('hidden');
       }
     }
@@ -170,7 +223,7 @@
           labels: ['Positive', 'Neutral', 'Negative'],
           datasets: [{
             data: [positive, neutral, negative],
-            backgroundColor: ['#34D399', '#60A5FA', '#F87171'],
+            backgroundColor: ['#22C55E', '#3B82F6', '#EF4444'],
             borderWidth: 0,
             hoverOffset: 8
           }]
@@ -182,7 +235,7 @@
             legend: {
               position: 'bottom',
               labels: {
-                color: '#4B5563',
+                color: '#374151',
                 font: { size: 14 },
                 padding: 20
               }
@@ -217,6 +270,56 @@
         tableBody.appendChild(row);
       });
       tableSection.classList.remove('hidden');
+    }
+
+    // Persistence functionality
+    function saveAnalysis() {
+      const analysisData = {
+        chart: sentimentChart ? sentimentChart.config.data : null,
+        tableData: document.getElementById('sentimentTableBody').innerHTML,
+        file: localStorage.getItem('currentFile')
+      };
+      localStorage.setItem('savedAnalysis', JSON.stringify(analysisData));
+      alert('Analysis saved successfully!');
+    }
+
+    // Load saved analysis on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = JSON.parse(localStorage.getItem('savedAnalysis'));
+      if (saved) {
+        if (saved.chart) showDoughnutChart(...saved.chart.datasets[0].data);
+        if (saved.tableData) document.getElementById('sentimentTableBody').innerHTML = saved.tableData;
+        if (saved.file) localStorage.setItem('currentFile', saved.file);
+      }
+      
+      // Show download button if report exists
+      if (localStorage.getItem('assessmentReport')) {
+        document.getElementById('downloadReportBtn').classList.remove('hidden');
+      }
+    });
+
+    async function downloadReport() {
+      const report = localStorage.getItem('assessmentReport');
+      if (!report) return;
+      
+      try {
+        const response = await fetch('/api/generate-pdf', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ report })
+        });
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ManaNow-Report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error('Download failed:', error);
+      }
     }
   </script>
 </body>

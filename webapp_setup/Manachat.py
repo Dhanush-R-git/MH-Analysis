@@ -26,12 +26,12 @@ HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 if not HF_TOKEN:
     raise ValueError("Hugging Face token is missing. Set the environment variable HUGGINGFACE_TOKEN.")
 
-HF_INFERENCE_API_KEY = os.getenv("HF_INFERENCE_API_KEY")
-if not HF_INFERENCE_API_KEY:
-    raise ValueError("Inference API key is missing. Set the environment variable HF_INFERENCE_API_KEY.")
+#HF_INFERENCE_API_KEY = os.getenv("HF_INFERENCE_API_KEY")
+#if not HF_INFERENCE_API_KEY:
+    #raise ValueError("Inference API key is missing. Set the environment variable HF_INFERENCE_API_KEY.")
 
 # Initialize the InferenceClient for cloud-based inference
-client = InferenceClient(api_key=HF_INFERENCE_API_KEY)
+client = InferenceClient(api_key=HF_TOKEN)
 
 # Global variables for lazy-loading the local model
 local_model = None

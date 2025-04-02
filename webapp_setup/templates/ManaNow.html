@@ -98,6 +98,11 @@
                       aria-label="Start New Assessment">
                 Start New Assessment
               </button>
+              <button onclick="saveReport()" 
+                      class="px-8 py-3 bg-blue-500 text-white rounded-full shadow hover:bg-blue-600 transition-colors"
+                      aria-label="Save Report">
+                Save Report
+              </button>
             </div>
           </div>
         </section>
@@ -220,8 +225,29 @@
           </div>
         `;
       }
+      localStorage.setItem('assessmentReport', data.report);
     }
 
+    function saveReport() {
+      const reportData = {
+        content: document.getElementById('reportContent').innerHTML,
+        resources: document.getElementById('resourcesSection').innerHTML,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('savedReport', JSON.stringify(reportData));
+      alert('Report saved successfully!');
+    }
+
+    // Load saved report
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = JSON.parse(localStorage.getItem('savedReport'));
+      if (saved) {
+        document.getElementById('reportContent').innerHTML = saved.content;
+        document.getElementById('resourcesSection').innerHTML = saved.resources;
+        document.getElementById('reportSection').classList.remove('hidden');
+      }
+    });
+    
     function showError(message) {
       const errorDiv = document.createElement('div');
       errorDiv.className = 'p-3 bg-red-100 text-red-700 rounded-lg mb-4';

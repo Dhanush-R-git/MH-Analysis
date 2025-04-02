@@ -1,8 +1,11 @@
 from fastapi import FastAPI, Request, Response, HTTPException, UploadFile, File # type: ignore
-from fastapi.responses import HTMLResponse, JSONResponse # type: ignore
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
 from fastapi.templating import Jinja2Templates # type: ignore
 from pydantic import BaseModel, Field # type: ignore
+from reportlab.pdfgen import canvas # type: ignore
+from reportlab.lib.pagesizes import letter # type: ignore
+import io
 import uvicorn # type: ignore
 from typing import List, Dict, Optional
 import asyncio
@@ -10,8 +13,8 @@ import logging
 import os
 
 # Import backend functions
-from Manachat import detect_mental_state, get_chatbot_response, load_local_model, HF_INFERENCE_API_KEY
-from Mananow import QUESTION_FLOW, generate_mentanow_report, build_mentanow_prompt, analyze_comments_sentiment
+from Manachat import detect_mental_state, get_chatbot_response, load_local_model, HF_TOKEN
+from Mananow import QUESTION_FLOW, generate_mentanow_report, analyze_comments_sentiment
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -66,56 +69,6 @@ async def upload_comments(file: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"Error processing uploaded file: {str(e)}")
         return JSONResponse(status_code=500, content={"error": "Failed to process uploaded file."})
-
-
-
-@app.get("/Manachat", response_class=HTMLResponse)
-async def chatbot_page(request: Request):
-    file_path = "D:/project-main/Final-year-projects/Project-Laboratory/MH-Analysis/webapp_setup/templates/Manachat.html"
-    logger.info(f"Checking if file exists: {file_path}")
-    assert os.path.exists(file_path), f"Template file not found at {file_path}"
-    return templates.TemplateResponse("Manachat.html", {"request": request})
-
-@app.get("/favicon.ico", include_in_schema=False)
-async def favicon():
-    return Response(status_code=204)
-
-@app.get("/api/model-status")
-async def model_status():
-    # Check if the local model can be loaded
-    local_status = False
-    try:
-        _ = load_local_model()
-        local_status = True
-    except Exception:
-        local_status = False
-    return {
-        "Local-Provider": local_status,
-        "Inference-Provider": HF_INFERENCE_API_KEY is not None
-    }
-
-@app.post("/api/chat")
-async def chat(chat_request: ChatRequest):
-    """Chat API endpoint."""
-    try:
-        user_message = chat_request.user_message.strip()
-        if not user_message:
-            return JSONResponse(status_code=400, content={"error": "Message cannot be empty."})
-        
-        # Offload blocking model inference calls to background threads
-        mental_state = await asyncio.to_thread(detect_mental_state, user_message)
-        chatbot_response = await asyncio.to_thread(
-            get_chatbot_response,
-            mental_state,
-            user_message,
-            chat_request.system_prompt,
-            chat_request.model_name,
-            chat_request.temperature
-        )
-        return JSONResponse(content={"mental_state": mental_state, "response": chatbot_response})
-    except Exception as e:
-        logger.exception("Error in /api/chat endpoint")
-        return JSONResponse(status_code=500, content={"error": str(e)})
     
 # Endpoints for MentaNow UI
 @app.get("/ManaNow", response_class=HTMLResponse)
@@ -148,5 +101,84 @@ def mentanow_api(payload: MentaNowRequest):
         ]
     })
 
+@app.post("/api/generate-pdf")
+async def generate_pdf(report: dict):
+    try:
+        pdf_buffer = io.BytesIO()
+        p = canvas.Canvas(pdf_buffer, pagesize=letter)
+        
+        # Set up PDF content
+        p.setFont("Helvetica", 12)
+        text = p.beginText(40, 750)
+        
+        # Add report content
+        for line in report['report'].split('\n'):
+            text.textLine(line)
+            if text.getY() < 40:
+                p.drawText(text)
+                p.showPage()
+                text = p.beginText(40, 750)
+                
+        p.drawText(text)
+        p.save()
+        
+        pdf_buffer.seek(0)
+        return Response(
+            content=pdf_buffer.read(),
+            media_type="application/pdf",
+            headers={"Content-Disposition": "attachment; filename=report.pdf"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/Manachat", response_class=HTMLResponse)
+async def chatbot_page(request: Request):
+    file_path = "D:/project-main/Final-year-projects/Project-Laboratory/MH-Analysis/webapp_setup/templates/Manachat.html"
+    logger.info(f"Checking if file exists: {file_path}")
+    assert os.path.exists(file_path), f"Template file not found at {file_path}"
+    return templates.TemplateResponse("Manachat.html", {"request": request})
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204)
+
+@app.get("/api/model-status")
+async def model_status():
+    # Check if the local model can be loaded
+    local_status = False
+    try:
+        _ = load_local_model()
+        local_status = True
+    except Exception:
+        local_status = False
+    return {
+        "Local-Provider": local_status,
+        "Inference-Provider": HF_TOKEN is not None
+    }
+
+@app.post("/api/chat")
+async def chat(chat_request: ChatRequest):
+    """Chat API endpoint."""
+    try:
+        user_message = chat_request.user_message.strip()
+        if not user_message:
+            return JSONResponse(status_code=400, content={"error": "Message cannot be empty."})
+        
+        # Offload blocking model inference calls to background threads
+        mental_state = await asyncio.to_thread(detect_mental_state, user_message)
+        chatbot_response = await asyncio.to_thread(
+            get_chatbot_response,
+            mental_state,
+            user_message,
+            chat_request.system_prompt,
+            chat_request.model_name,
+            chat_request.temperature
+        )
+        return JSONResponse(content={"mental_state": mental_state, "response": chatbot_response})
+    except Exception as e:
+        logger.exception("Error in /api/chat endpoint")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+    
 if __name__ == "__main__":
     uvicorn.run("chatbot:app", host="127.0.0.1", port=5000, reload=True)
