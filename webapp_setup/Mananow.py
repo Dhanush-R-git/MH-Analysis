@@ -41,30 +41,137 @@ except Exception as e:
 # Extended question flow (10 questions)
 QUESTION_FLOW = [
     {
+        "id": "user_name",
+        "title": "Please Enter your name?",
+        "text": "Please provide your name.",
+        "type": "text"
+    },
+    {
         "id": "user_type",
-        "title": "Are you answering for yourself or someone else?",
+        "title": "Are you sure answering for yourself ?",
         "text": "Please select one option.",
         "type": "radio",
-        "options": ["Myself", "Someone else"]
+        "options": ["Yes", "No"]
     },
     {
-        "id": "age_range",
-        "title": "What is your age range?",
-        "text": "Choose your age range.",
+        "id": "Date_of_Birth",
+        "title": "Please Enter your Date of Birth?",
+        "text": "Select your date of birth from the calendar.",
+        "type": "date"
+    },
+    {
+        "id": "person_age",
+        "title": "What is your age ?",
+        "type": "number",
+        "min": 16,
+        "max": 100,
+        "step": 1,
+        "placeholder": "Enter your age",
+    },
+    {
+        "id": "smoker",
+        "title": "Are you a smoker?",
+        "text": "Please select one option.",
         "type": "radio",
-        "options": ["Under 18", "18-30", "31-50", "50+"]
+        "options": ["Yes", "No"],
+        "follow_up": {
+            "yes": [
+                {
+                    "id": "cigarettes_per_day",
+                    "title": "How many cigarettes do you smoke per day?",
+                    "text": "Please enter the number of cigarettes you smoke daily.",
+                    "type": "number",
+                    "placeholder": "Enter number of cigarettes"
+                },
+                {
+                    "id": "smoking_duration",
+                    "title": "How long have you been smoking?",
+                    "text": "Please specify the duration of your smoking habit.",
+                    "type": "number",
+                    "placeholder": "Enter duration",
+                    "unit_options": ["Years", "Months", "Days"]
+                }
+            ]
+        }
     },
     {
-        "id": "primary_concern",
-        "title": "What is your primary concern right now?",
-        "text": "Briefly describe what is troubling you (e.g., stress, anxiety).",
-        "type": "text"
+        "id": "alcohol",
+        "title": "Do you consume alcohol?",
+        "text": "Please select one option.",
+        "type": "radio",
+        "options": ["Yes", "No"],
+        "follow_up": {
+            "yes": [
+                {
+                    "id": "drinks_per_week",
+                    "title": "How many alcoholic drinks do you consume per week?",
+                    "text": "Please enter the approximate number of drinks you consume weekly.",
+                    "type": "number",
+                    "placeholder": "Enter number of drinks"
+                },
+                {
+                    "id": "alcohol_duration",
+                    "title": "How long have you been consuming alcohol?",
+                    "text": "Please specify the duration of your alcohol consumption habit.",
+                    "type": "number",
+                    "placeholder": "Enter duration",
+                    "unit_options": ["Years", "Months", "Days"]
+                }
+            ]
+        }
+    },
+    {
+        "id": "medications",
+        "title": "Are you currently taking any medications?",
+        "text": "Please select one option.",
+        "type": "radio",
+        "options": ["Yes", "No"],
+        "follow_up": {
+            "yes": [
+                {
+                    "id": "medication_list",
+                    "title": "Please list the medications you are currently taking.",
+                    "text": "Provide the names of the medications you are taking (e.g., Paracetamol, Ibuprofen).",
+                    "type": "text",
+                    "placeholder": "Enter medication names separated by commas"
+                },
+                {
+                    "id": "medication_duration",
+                    "title": "How long have you been taking these medications?",
+                    "text": "Please specify the duration of your medication usage.",
+                    "type": "number",
+                    "placeholder": "Enter duration",
+                    "unit_options": ["Years", "Months", "Days"]
+                },
+                {
+                    "id": "medication_side_effects",
+                    "title": "Have you experienced any side effects from these medications?",
+                    "text": "Please describe any side effects you have experienced.",
+                    "type": "text",
+                    "placeholder": "Describe side effects here..."
+                }
+            ]
+        }
     },
     {
         "id": "sleep",
         "title": "Have you experienced any sleep disturbances recently?",
-        "text": "Please describe if you have had issues with sleep.",
-        "type": "text"
+        "text": "Rate the frequency of your sleep disturbances and provide additional details if applicable.",
+        "type": "likert_and_text",  # Custom type to combine Likert scale and text input
+        "likert_scale": {
+            "1": "Not at all",
+            "2": "Rarely",
+            "3": "Sometimes",
+            "4": "Often",
+            "5": "Very often"
+        },
+        "follow_up": {
+            "id": "sleep_details",
+            "title": "Please describe your sleep disturbances.",
+            "text": "Provide additional details about your sleep issues (e.g., difficulty falling asleep, waking up frequently).",
+            "type": "text",
+            "placeholder": "Describe your sleep issues here..."
+        }
     },
     {
         "id": "concentration",
@@ -80,6 +187,7 @@ QUESTION_FLOW = [
         "type": "radio",
         "options": ["High", "Moderate", "Low"]
     },
+
     {
         "id": "social",
         "title": "Have you withdrawn from social activities?",
@@ -90,9 +198,36 @@ QUESTION_FLOW = [
     {
         "id": "appetite",
         "title": "How has your appetite been?",
-        "text": "Choose your response.",
+        "text": "Appetite refers to your natural desire to eat. Changes in appetite can indicate physical or emotional health changes. Please choose your response.",
         "type": "radio",
-        "options": ["Increased", "Decreased", "Normal"]
+        "options": ["Increased", "Decreased", "Normal"],
+        "follow_up": {
+            "increased": [
+                {
+                    "id": "increased_appetite_reason",
+                    "title": "Do you know why your appetite has increased?",
+                    "text": "Please provide any reasons or observations about your increased appetite.",
+                    "type": "text",
+                    "placeholder": "Enter your response here..."
+                }
+            ],
+            "decreased": [
+                {
+                    "id": "decreased_appetite_reason",
+                    "title": "Do you know why your appetite has decreased?",
+                    "text": "Please provide any reasons or observations about your decreased appetite.",
+                    "type": "text",
+                    "placeholder": "Enter your response here..."
+                },
+                {
+                    "id": "weight_loss",
+                    "title": "Have you experienced any weight loss?",
+                    "text": "If yes, please specify the amount of weight lost.",
+                    "type": "number",
+                    "placeholder": "Enter weight loss in kilograms"
+                }
+            ]
+        }
     },
     {
         "id": "mood",
@@ -102,11 +237,69 @@ QUESTION_FLOW = [
         "options": ["Happy", "Neutral", "Sad"]
     },
     {
-        "id": "coping",
-        "title": "How effective do you feel your current coping strategies are?",
-        "text": "Rate your ability to manage stress.",
+        "id": "relationship_problems",
+        "title": "Are you currently experiencing any relationship problems?",
+        "text": "Relationship problems can include issues with friends, family, or romantic relationships. Please select one option.",
         "type": "radio",
-        "options": ["Effective", "Somewhat effective", "Not effective"]
+        "options": ["Yes", "No"],
+        "follow_up": {
+            "yes": [
+                {
+                    "id": "relationship_type",
+                    "title": "What type of relationship problem are you experiencing?",
+                    "text": "Please select the type(s) of relationship issue(s) you are facing. You can choose one or more options.",
+                    "type": "checkbox",
+                    "options": ["Friends", "Family", "Romantic Partner", "Breakups", "Other"],
+                    "follow_up": {
+                        "Friends": [
+                            {
+                                "id": "friends_problem_description",
+                                "title": "Please describe the problem with your friends.",
+                                "text": "Provide details about the issues you are facing with your friends.",
+                                "type": "text",
+                                "placeholder": "Describe your problem here..."
+                            }
+                        ],
+                        "Family": [
+                            {
+                                "id": "family_problem_description",
+                                "title": "Please describe the problem with your family.",
+                                "text": "Provide details about the issues you are facing with your family.",
+                                "type": "text",
+                                "placeholder": "Describe your problem here..."
+                            }
+                        ],
+                        "Romantic Partner": [
+                            {
+                                "id": "romantic_problem_description",
+                                "title": "Please describe the problem with your romantic partner.",
+                                "text": "Provide details about the issues you are facing with your romantic partner.",
+                                "type": "text",
+                                "placeholder": "Describe your problem here..."
+                            }
+                        ],
+                        "Breakups": [
+                            {
+                                "id": "breakup_problem_description",
+                                "title": "Please describe the breakup problem you are experiencing.",
+                                "text": "Provide details about the breakup and how it is affecting you.",
+                                "type": "text",
+                                "placeholder": "Describe your problem here..."
+                            }
+                        ],
+                        "Other": [
+                            {
+                                "id": "other_problem_description",
+                                "title": "Please describe the problem you are experiencing.",
+                                "text": "Provide details about the issue you are facing.",
+                                "type": "text",
+                                "placeholder": "Describe your problem here..."
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
     }
 ]
 
