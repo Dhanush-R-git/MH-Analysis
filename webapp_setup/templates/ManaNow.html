@@ -231,6 +231,25 @@
       radio.checked = true;
     }
 
+    function handlePrevious() {
+      if (currentStep > 0) {
+        // Decrement the current step
+        currentStep--;
+
+        // Remove the last answer from the userAnswers array
+        userAnswers.pop();
+
+        // Fetch the previous question from the server or local cache
+        const previousQuestion = cachedQuestions[currentStep];
+        if (previousQuestion) {
+          updateQuestionUI(previousQuestion);
+        }
+      }
+
+      // Disable the "Previous" button if on the first question
+      document.getElementById('prevButton').disabled = currentStep === 0;
+    }
+
     async function handleNext() {
       const answer = getCurrentAnswer();
       if (!answer) {
