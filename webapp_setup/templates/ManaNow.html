@@ -220,15 +220,20 @@
 
     function updateQuestionUI(question) {
       document.getElementById('questionTitle').textContent = question.title;
-      document.getElementById('questionText').textContent = question.text;
+      document.getElementById('questionText').textContent = question.text || "";
       document.getElementById('questionNumber').textContent = `Question ${question.number}/${question.total}`;
       const progress = (question.number / question.total) * 100;
       document.getElementById('progressBar').style.width = `${progress}%`;
 
       const container = document.getElementById('answerContainer');
-      container.innerHTML = "";
+      container.innerHTML = ""; // Clear previous inputs
 
-      if (question.type === 'radio') {
+      // Render input based on question type
+      if (question.type === 'text') {
+        container.innerHTML = `
+          <textarea id="textAnswer" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${question.placeholder || 'Type your response...'}" aria-label="Your Answer"></textarea>
+        `;
+      } else if (question.type === 'radio') {
         question.options.forEach(option => {
           const div = document.createElement('div');
           div.className = 'flex items-center p-3 rounded-lg hover:bg-teal-50 cursor-pointer border border-transparent transition-colors';
@@ -239,19 +244,39 @@
           `;
           container.appendChild(div);
         });
-      } else if (question.type === 'text') {
-        container.innerHTML = `
-          <textarea id="textAnswer" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Type your response..." aria-label="Your Answer"></textarea>
-        `;
       } else if (question.type === 'date') {
         container.innerHTML = `
           <label for="dateAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
-          <input type="text" id="dateAnswer" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Select your date of birth" aria-label="Date of Birth">
+          <input type="date" id="dateAnswer" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Select your date of birth" aria-label="Date of Birth">
         `;
-        flatpickr("#dateAnswer", {
-          dateFormat: "Y-m-d",
-          maxDate: "today"
+      } else if (question.type === 'number') {
+        container.innerHTML = `
+          <label for="numberAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
+          <input type="number" id="numberAnswer" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" min="${question.min || ''}" max="${question.max || ''}" step="${question.step || 1}" placeholder="${question.placeholder || ''}" aria-label="Number Input">
+        `;
+      } else if (question.type === 'checkbox') {
+        question.options.forEach(option => {
+          const div = document.createElement('div');
+          div.className = 'flex items-center p-3 rounded-lg hover:bg-teal-50 cursor-pointer border border-transparent transition-colors';
+          div.innerHTML = `
+            <input type="checkbox" name="answer" value="${option}" class="form-checkbox h-5 w-5 text-teal-600" aria-label="${option}">
+            <label class="ml-3 text-gray-700">${option}</label>
+          `;
+          container.appendChild(div);
         });
+      } else if (question.type === 'likert_and_text') {
+        container.innerHTML = `
+          <label for="likertAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
+          <div id="likertScale" class="flex justify-between">
+            ${Object.entries(question.likert_scale).map(([value, label]) => `
+              <div class="flex flex-col items-center">
+                <input type="radio" name="likert" value="${value}" class="form-radio h-5 w-5 text-teal-600" aria-label="${label}">
+                <span class="text-sm text-gray-700">${label}</span>
+              </div>
+            `).join('')}
+          </div>
+          <textarea id="textAnswer" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 mt-4" placeholder="${question.follow_up.placeholder || 'Describe your sleep issues here...'}" aria-label="Additional Details"></textarea>
+        `;
       }
 
       // Enable or disable the "Previous" button
@@ -303,13 +328,24 @@
 
     function getCurrentAnswer() {
       const radio = document.querySelector('input[name="answer"]:checked');
-      if (radio) return radio.nextElementSibling.textContent;
+      if (radio) return radio.value;
 
       const textarea = document.getElementById('textAnswer');
       if (textarea) return textarea.value.trim();
 
       const dateInput = document.getElementById('dateAnswer');
-      if (dateInput) return dateInput.value.trim(); // Retrieve the value of the date input
+      if (dateInput) return dateInput.value.trim();
+
+      const numberInput = document.getElementById('numberAnswer');
+      if (numberInput) return numberInput.value.trim();
+
+      const checkboxes = document.querySelectorAll('input[name="answer"]:checked');
+      if (checkboxes.length > 0) {
+        return Array.from(checkboxes).map(checkbox => checkbox.value);
+      }
+
+      const likert = document.querySelector('input[name="likert"]:checked');
+      if (likert) return likert.value;
 
       return null; // Return null if no valid input is found
     }
