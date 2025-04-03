@@ -312,6 +312,7 @@ def build_mentanow_prompt(user_answers: List[Dict]) -> str:
     return f"""Mental Health Assessment Summary:
 {summary}
 "GENERATE A Complete REPORT BASED ON MENTAL HEALTH ASSESSMENT SUMMARY OF USER."
+note: 
 Please provide:
 1. A concise analysis of the user's mental state.
 2. Three actionable recommendations.

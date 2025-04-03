@@ -6,6 +6,8 @@
   <title>MaṉaNow - Mental Health Assessment</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <style>
     /* Soft pastel gradient background */
     .hero-bg {
@@ -27,6 +29,16 @@
     }
     .main-content {
       flex: 1;
+    }
+    input[type="date"] {
+      display: block;
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 0.375rem;
+      background-color: #fff;
+      color: #333;
     }
   </style>
 </head>
@@ -74,6 +86,11 @@
                 <div id="progressBar" class="h-full bg-teal-500 transition-all duration-300"></div>
               </div>
             </div>
+            <!-- Date of Birth Input -->
+            <div id="dateOfBirthContainer" class="hidden">
+              <label for="dateOfBirth" class="block text-gray-700 font-medium mb-2">Please Enter your Date of Birth:</label>
+              <input type="date" id="dateOfBirth" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Select your date of birth" aria-label="Date of Birth">
+            </div>
             <h2 id="questionTitle" class="text-2xl font-semibold text-gray-800 mb-4"></h2>
             <p id="questionText" class="text-gray-600 text-lg mb-6"></p>
             <div id="answerContainer" class="space-y-4"></div>
@@ -95,6 +112,7 @@
             </div>
           </div>
         </section>
+
 
         <!-- Report Section -->
         <section id="reportSection" class="hidden animate__animated animate__fadeIn" aria-label="Assessment Report">
@@ -225,6 +243,15 @@
         container.innerHTML = `
           <textarea id="textAnswer" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Type your response..." aria-label="Your Answer"></textarea>
         `;
+      } else if (question.type === 'date') {
+        container.innerHTML = `
+          <label for="dateAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
+          <input type="text" id="dateAnswer" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Select your date of birth" aria-label="Date of Birth">
+        `;
+        flatpickr("#dateAnswer", {
+          dateFormat: "Y-m-d",
+          maxDate: "today"
+        });
       }
 
       // Enable or disable the "Previous" button
@@ -277,8 +304,14 @@
     function getCurrentAnswer() {
       const radio = document.querySelector('input[name="answer"]:checked');
       if (radio) return radio.nextElementSibling.textContent;
+
       const textarea = document.getElementById('textAnswer');
-      return textarea ? textarea.value.trim() : null;
+      if (textarea) return textarea.value.trim();
+
+      const dateInput = document.getElementById('dateAnswer');
+      if (dateInput) return dateInput.value.trim(); // Retrieve the value of the date input
+
+      return null; // Return null if no valid input is found
     }
 
     function showReport(data) {
