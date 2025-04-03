@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, Response, HTTPException, UploadFile, File # type: ignore
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse # type: ignore
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
 from fastapi.templating import Jinja2Templates # type: ignore
 from pydantic import BaseModel, Field # type: ignore
@@ -102,31 +102,33 @@ def mentanow_api(payload: MentaNowRequest):
     })
 
 @app.post("/api/generate-pdf")
-async def generate_pdf(report: dict):
+async def generate_pdf(report_data: dict):
     try:
-        pdf_buffer = io.BytesIO()
-        p = canvas.Canvas(pdf_buffer, pagesize=letter)
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
         
         # Set up PDF content
         p.setFont("Helvetica", 12)
-        text = p.beginText(40, 750)
+        y_position = 750
+        line_height = 14
+        #text = p.beginText(40, 750)
         
         # Add report content
-        for line in report['report'].split('\n'):
-            text.textLine(line)
-            if text.getY() < 40:
-                p.drawText(text)
+        for line in report_data['report'].split('\n'):
+           
+            if y_position < 40:
                 p.showPage()
-                text = p.beginText(40, 750)
+                y_position = 750
+            p.drawString(40, y_position, line)
+            y_position -= line_height
                 
-        p.drawText(text)
         p.save()
-        
-        pdf_buffer.seek(0)
-        return Response(
-            content=pdf_buffer.read(),
+        buffer.seek(0)
+
+        return StreamingResponse(
+            buffer,
             media_type="application/pdf",
-            headers={"Content-Disposition": "attachment; filename=report.pdf"}
+            headers={"Content-Disposition": "attachment; filename=MaṉaNow_report.pdf"}
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

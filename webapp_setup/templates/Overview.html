@@ -113,12 +113,12 @@
           <button onclick="saveAnalysis()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700" aria-label="Save Analysis">
             Save Analysis
           </button>
-          <button onclick="location.reload()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700" aria-label="Refresh Page">
+          <button onclick="refreshPage()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700" aria-label="Refresh Page">
             Refresh
           </button>
-          <button id="downloadReportBtn" onclick="downloadReport()" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 hidden" aria-label="Download Report">
+          <!--<button id="downloadReportBtn" onclick="downloadReport()" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 hidden" aria-label="Download Report">
             Download Report
-          </button>
+          </button>-->
         </div>
         <!-- Right Column: Chart Visualization -->
         <div class="md:w-1/2 flex items-center justify-center">
@@ -129,6 +129,13 @@
       </div>
     </div>
 
+    <!-- Add a section for downloading reports -->
+    <section id="downloadReportsSection" class="hidden bg-white p-6 rounded-lg shadow mb-12">
+      <h2 class="text-xl font-semibold mb-4">Download Reports</h2>
+      <div id="reportList" class="space-y-4">
+        <!-- Reports will be dynamically added here -->
+      </div>
+    </section>
 
     <!-- Detailed Sentiment Table Section (conditionally shown) -->
     <div id="sentimentTableSection" class="bg-white p-6 rounded-lg shadow hidden" aria-label="Detailed Sentiment Analysis">
@@ -272,43 +279,115 @@
       tableSection.classList.remove('hidden');
     }
 
-    // Persistence functionality
+    // Persistent storage handling
     function saveAnalysis() {
+      const chartData = sentimentChart ? sentimentChart.data.datasets[0].data : null;
+      const tableData = document.getElementById('sentimentTableBody').innerHTML;
+
       const analysisData = {
-        chart: sentimentChart ? sentimentChart.config.data : null,
-        tableData: document.getElementById('sentimentTableBody').innerHTML,
-        file: localStorage.getItem('currentFile')
+        chartData,
+        tableData,
+        reportExists: localStorage.getItem('assessmentReport') !== null,
       };
+
       localStorage.setItem('savedAnalysis', JSON.stringify(analysisData));
       alert('Analysis saved successfully!');
+    }
+
+    // Refresh page and clear local storage
+    function refreshPage() {
+      // Clear localStorage
+      localStorage.clear();
+
+      // Reset the chart
+      const chartContainer = document.getElementById('chartContainer');
+      if (sentimentChart) {
+        sentimentChart.destroy();
+        sentimentChart = null;
+      }
+      chartContainer.classList.add('hidden');
+
+      // Reset the table
+      const tableSection = document.getElementById('sentimentTableSection');
+      const tableBody = document.getElementById('sentimentTableBody');
+      tableBody.innerHTML = '';
+      tableSection.classList.add('hidden');
+
+      // Hide the assessment explanation
+      const assessmentExplanation = document.getElementById('assessmentExplanation');
+      assessmentExplanation.classList.add('hidden');
+
+      // Hide the download button
+      const downloadReportBtn = document.getElementById('downloadReportBtn');
+      downloadReportBtn.classList.add('hidden');
+
+      // Reset the upload result
+      const uploadResult = document.getElementById('uploadResult');
+      uploadResult.textContent = '';
+
+      // Optionally reload the page to fully reset
+      location.reload();
     }
 
     // Load saved analysis on page load
     window.addEventListener('DOMContentLoaded', () => {
       const saved = JSON.parse(localStorage.getItem('savedAnalysis'));
       if (saved) {
-        if (saved.chart) showDoughnutChart(...saved.chart.datasets[0].data);
-        if (saved.tableData) document.getElementById('sentimentTableBody').innerHTML = saved.tableData;
-        if (saved.file) localStorage.setItem('currentFile', saved.file);
+        // Restore the chart
+        if (saved.chartData) {
+          showDoughnutChart(...saved.chartData);
+        }
+
+        // Restore the table
+        if (saved.tableData) {
+          document.getElementById('sentimentTableBody').innerHTML = saved.tableData;
+          document.getElementById('sentimentTableSection').classList.remove('hidden');
+        }
+
+        // Show the download button if a report exists
+        if (saved.reportExists) {
+          document.getElementById('downloadReportBtn').classList.remove('hidden');
+        }
       }
-      
-      // Show download button if report exists
-      if (localStorage.getItem('assessmentReport')) {
-        document.getElementById('downloadReportBtn').classList.remove('hidden');
+
+      const savedReports = JSON.parse(localStorage.getItem('savedReports')) || [];
+      if (savedReports.length > 0) {
+        const reportList = document.getElementById('reportList');
+        savedReports.forEach((report, index) => {
+          const reportElement = document.createElement('div');
+          reportElement.className = 'p-4 bg-gray-100 rounded-lg shadow flex justify-between items-center';
+          reportElement.innerHTML = `
+            <span class="text-gray-800">Report - ${new Date(report.timestamp).toLocaleString()}</span>
+            <button onclick="downloadSpecificReport(${index})" class="px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600">
+              Download
+            </button>
+          `;
+          reportList.appendChild(reportElement);
+        });
+
+        // Show the download reports section
+        document.getElementById('downloadReportsSection').classList.remove('hidden');
       }
     });
 
     async function downloadReport() {
       const report = localStorage.getItem('assessmentReport');
-      if (!report) return;
-      
+      if (!report) {
+        alert('No report available to download.');
+        return;
+      }
+
       try {
         const response = await fetch('/api/generate-pdf', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ report })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ report }),
         });
-        
+
+        if (!response.ok) {
+          throw new Error('Failed to generate the report.');
+        }
+
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -321,6 +400,28 @@
         console.error('Download failed:', error);
       }
     }
+
+    function downloadSpecificReport(index) {
+      const savedReports = JSON.parse(localStorage.getItem('savedReports')) || [];
+      const report = savedReports[index];
+      if (!report) {
+        alert('Report not found.');
+        return;
+      }
+
+      const blob = new Blob([report.content], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ManaNow-Report-${index + 1}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // Example: After generating the report in ManaNow
+    localStorage.setItem('assessmentReport', JSON.stringify(reportData)); // Save the report
+    document.getElementById('downloadReportBtn').classList.remove('hidden'); // Show the button
   </script>
 </body>
 </html>

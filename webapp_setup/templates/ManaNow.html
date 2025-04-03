@@ -77,12 +77,22 @@
             <h2 id="questionTitle" class="text-2xl font-semibold text-gray-800 mb-4"></h2>
             <p id="questionText" class="text-gray-600 text-lg mb-6"></p>
             <div id="answerContainer" class="space-y-4"></div>
-            <button id="nextButton"
-                    class="mt-6 px-8 py-3 bg-teal-500 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-teal-600 transition-colors"
-                    onclick="handleNext()"
-                    aria-label="Continue to Next Question">
-              Continue
-            </button>
+            <div class="flex justify-between mt-6">
+              <!-- Previous Button -->
+              <button id="prevButton"
+                      class="px-8 py-3 bg-gray-500 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors"
+                      onclick="handlePrevious()"
+                      aria-label="Go to Previous Question">
+                Previous
+              </button>
+              <!-- Next Button -->
+              <button id="nextButton"
+                      class="px-8 py-3 bg-teal-500 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-teal-600 transition-colors"
+                      onclick="handleNext()"
+                      aria-label="Continue to Next Question">
+                Continue
+              </button>
+            </div>
           </div>
         </section>
 
@@ -93,18 +103,35 @@
             <div id="reportContent" class="prose max-w-none text-gray-800"></div>
             <div id="resourcesSection" class="mt-8"></div>
             <div class="mt-10 text-center">
-              <button onclick="location.reload()"
-                      class="px-8 py-3 bg-green-500 text-white rounded-full shadow hover:bg-green-600 transition-colors"
-                      aria-label="Start New Assessment">
-                Start New Assessment
-              </button>
               <button onclick="saveReport()" 
                       class="px-8 py-3 bg-blue-500 text-white rounded-full shadow hover:bg-blue-600 transition-colors"
                       aria-label="Save Report">
                 Save Report
               </button>
+              <button onclick="location.reload()"
+                      class="px-8 py-3 bg-green-500 text-white rounded-full shadow hover:bg-green-600 transition-colors"
+                      aria-label="Start New Assessment">
+                Start New Assessment
+              </button>
             </div>
           </div>
+            <!-- Add a side box for reports -->
+          <div id="reportSidebar" class="fixed top-0 right-0 w-80 h-full bg-gray-100 shadow-lg hidden z-50">
+            <div class="p-4 flex justify-between items-center bg-teal-500 text-white">
+              <h3 class="text-lg font-bold">Saved Reports</h3>
+              <button onclick="toggleReportSidebar()" class="text-white hover:text-gray-200">
+                Close
+              </button>
+            </div>
+            <div id="savedReports" class="p-4 space-y-4 overflow-y-auto">
+              <!-- Reports will be dynamically added here -->
+            </div>
+          </div>
+
+          <!-- Add a button to toggle the sidebar -->
+          <button onclick="toggleReportSidebar()" class="fixed top-4 right-4 bg-teal-500 text-white px-4 py-2 rounded-full shadow hover:bg-teal-600 z-50">
+            View Saved Reports
+          </button>
         </section>
       </div>
     </main>
@@ -116,6 +143,24 @@
       </div>
     </footer>
   </div>
+
+  <!-- Add a side box for reports
+  <div id="reportSidebar" class="fixed top-0 right-0 w-80 h-full bg-gray-100 shadow-lg hidden z-50">
+    <div class="p-4 flex justify-between items-center bg-teal-500 text-white">
+      <h3 class="text-lg font-bold">Saved Reports</h3>
+      <button onclick="toggleReportSidebar()" class="text-white hover:text-gray-200">
+        Close
+      </button>
+    </div>
+    <div id="savedReports" class="p-4 space-y-4 overflow-y-auto">
+      < Reports will be dynamically added here
+    </div>
+  </div> -->
+
+  <!-- Add a button to toggle the sidebar
+  <button onclick="toggleReportSidebar()" class="fixed top-4 right-4 bg-teal-500 text-white px-4 py-2 rounded-full shadow hover:bg-teal-600 z-50">
+    View Saved Reports
+  </button>-->
 
   <!-- JavaScript for Assessment Flow -->
   <script>
@@ -234,20 +279,67 @@
         resources: document.getElementById('resourcesSection').innerHTML,
         timestamp: new Date().toISOString()
       };
-      localStorage.setItem('savedReport', JSON.stringify(reportData));
+
+      // Save the report to localStorage
+      const savedReports = JSON.parse(localStorage.getItem('savedReports')) || [];
+      savedReports.push(reportData);
+      localStorage.setItem('savedReports', JSON.stringify(savedReports));
+
+      // Add the report to the sidebar
+      const savedReportsContainer = document.getElementById('savedReports');
+      const reportElement = document.createElement('div');
+      reportElement.className = 'p-4 bg-white rounded-lg shadow';
+      reportElement.innerHTML = `
+        <h4 class="text-lg font-semibold text-gray-800">Report - ${new Date(reportData.timestamp).toLocaleString()}</h4>
+        <button onclick="downloadSpecificReport(${savedReports.length - 1})" class="text-teal-600 hover:underline">
+          Download Report
+        </button>
+      `;
+      savedReportsContainer.appendChild(reportElement);
+
       alert('Report saved successfully!');
     }
 
-    // Load saved report
-    window.addEventListener('DOMContentLoaded', () => {
-      const saved = JSON.parse(localStorage.getItem('savedReport'));
-      if (saved) {
-        document.getElementById('reportContent').innerHTML = saved.content;
-        document.getElementById('resourcesSection').innerHTML = saved.resources;
-        document.getElementById('reportSection').classList.remove('hidden');
+    function downloadSpecificReport(index) {
+      const savedReports = JSON.parse(localStorage.getItem('savedReports')) || [];
+      const report = savedReports[index];
+      if (!report) {
+        alert('Report not found.');
+        return;
       }
+
+      const blob = new Blob([report.content], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ManaNow-Report-${index + 1}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // Load saved reports on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedReports = JSON.parse(localStorage.getItem('savedReports')) || [];
+      const savedReportsContainer = document.getElementById('savedReports');
+      savedReports.forEach((report, index) => {
+        const reportElement = document.createElement('div');
+        reportElement.className = 'p-4 bg-white rounded-lg shadow';
+        reportElement.innerHTML = `
+          <h4 class="text-lg font-semibold text-gray-800">Report - ${new Date(report.timestamp).toLocaleString()}</h4>
+          <button onclick="downloadSpecificReport(${index})" class="text-teal-600 hover:underline">
+            Download Report
+          </button>
+        `;
+        savedReportsContainer.appendChild(reportElement);
+      });
     });
     
+    function toggleReportSidebar() {
+      const sidebar = document.getElementById('reportSidebar');
+      sidebar.classList.toggle('hidden');
+    }
+
     function showError(message) {
       const errorDiv = document.createElement('div');
       errorDiv.className = 'p-3 bg-red-100 text-red-700 rounded-lg mb-4';
@@ -256,6 +348,7 @@
       container.prepend(errorDiv);
       setTimeout(() => errorDiv.remove(), 5000);
     }
+
   </script>
 </body>
 </html>
