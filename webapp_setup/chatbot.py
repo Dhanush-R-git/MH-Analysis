@@ -12,6 +12,10 @@ from typing import List, Dict, Optional
 import asyncio
 import logging
 import os
+import sys
+
+# Add the project root directory to the Python path
+#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import backend functions
 from Manachat import detect_mental_state, get_chatbot_response, load_local_model, HF_TOKEN
@@ -67,13 +71,13 @@ async def upload_comments(file: UploadFile = File(...)):
         if "error" in sentiment_counts:
             warning_message = f"Error in sentiment analysis: {sentiment_counts['error']}"
             logger.warning(warning_message)
-            log_error("chatbot.py", "Warning", warning_message, -1)
+            log_error("chatbot.py", "Warning", warning_message)
             return JSONResponse(status_code=400, content=sentiment_counts)
         return JSONResponse(status_code=200, content=sentiment_counts)
     except Exception as e:
         error_message = f"Error processing uploaded file: {str(e)}"
         logger.error(error_message)
-        log_error("chatbot.py", "Error", error_message, -1)
+        log_error("chatbot.py", "Error", error_message)
         return JSONResponse(status_code=500, content={"error": "Failed to process uploaded file."})
     
 # Endpoints for MentaNow UI
@@ -110,7 +114,7 @@ def mentanow_api(payload: MentaNowRequest):
     except Exception as e:
         error_message = f"Error in ManaNow API: {str(e)}"
         logger.error(error_message)
-        log_error("chatbot.py", "Error", error_message, -1)
+        log_error("chatbot.py", "Error", error_message)
         return JSONResponse(status_code=500, content={"error": "Failed to process ManaNow request."})
 
 @app.post("/api/generate-pdf")
@@ -143,7 +147,7 @@ async def generate_pdf(report_data: dict):
     except Exception as e:
         error_message = f"Error generating PDF: {str(e)}"
         logger.error(error_message)
-        log_error("chatbot.py", "Error", error_message, -1)
+        log_error("chatbot.py", "Error", error_message)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/Manachat", response_class=HTMLResponse)
@@ -169,7 +173,7 @@ async def model_status():
         except Exception as e:
             warning_message = f"Local model loading failed: {str(e)}"
             logger.warning(warning_message)
-            log_error("chatbot.py", "Warning", warning_message, -1)
+            log_error("chatbot.py", "Warning", warning_message)
             local_status = False
         return {
             "Local-Provider": local_status,
@@ -178,7 +182,7 @@ async def model_status():
     except Exception as e:
         error_message = f"Error checking model status: {str(e)}"
         logger.error(error_message)
-        log_error("chatbot.py", "Error", error_message, -1)
+        log_error("chatbot.py", "Error", error_message)
         return JSONResponse(status_code=500, content={"error": error_message})
 
 @app.post("/api/chat")
@@ -189,7 +193,7 @@ async def chat(chat_request: ChatRequest):
         if not user_message:
             warning_message = "Message cannot be empty."
             logger.warning(warning_message)
-            log_error("chatbot.py", "Warning", warning_message, -1)
+            log_error("chatbot.py", "Warning", warning_message)
             return JSONResponse(status_code=400, content={"error": warning_message})
         
         # Offload blocking model inference calls to background threads
@@ -206,7 +210,7 @@ async def chat(chat_request: ChatRequest):
     except Exception as e:
         error_message = f"Error in /api/chat endpoint: {str(e)}"
         logger.exception(error_message)
-        log_error("chatbot.py", "Error", error_message, -1)
+        log_error("chatbot.py", "Error", error_message)
         return JSONResponse(status_code=500, content={"error": error_message})
     
 if __name__ == "__main__":

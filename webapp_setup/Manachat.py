@@ -1,11 +1,13 @@
-import os
+import os, sys
 import torch # type: ignore
 import logging
-from error_logger import log_error
+from webapp_setup.error_logger import log_error
 from dotenv import load_dotenv # type: ignore
 from transformers import AutoTokenizer, AutoModelForMaskedLM, AutoModelForCausalLM
 from huggingface_hub import InferenceClient # type: ignore
 
+# Add the project root directory to the Python path
+#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,7 +25,7 @@ try:
 except Exception as e:
     error_message = f"Error loading environment variables: {str(e)}"
     logger.exception(error_message)
-    log_error("Manachat.py", "Error", error_message, -1)
+    log_error("Manachat.py", "Error", error_message)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -55,7 +57,7 @@ def load_local_model():
         except Exception as e:
             error_message = f"Failed to load local fallback model: {str(e)}"
             logger.exception(error_message)
-            log_error("Manachat.py", "Error", error_message, -1)
+            log_error("Manachat.py", "Error", error_message)
             raise RuntimeError("Local model not available")
     return local_model, local_tokenizer
 
@@ -68,7 +70,7 @@ try:
 except Exception as e:
     error_message = f"Failed to load mental health model: {str(e)}"
     logger.exception(error_message)
-    log_error("Manachat.py", "Error", error_message, -1)
+    log_error("Manachat.py", "Error", error_message)
     raise RuntimeError(f"Failed to load mental health model: {e}")
 
 def detect_mental_state(user_message: str) -> str:
@@ -85,7 +87,7 @@ def detect_mental_state(user_message: str) -> str:
     except Exception as e:
         error_message = f"Error detecting mental state: {str(e)}"
         logger.error(error_message)
-        log_error("Manachat.py", "Error", error_message, -1)
+        log_error("Manachat.py", "Error", error_message)
         return "Unable to detect mental state."
 
 def get_chatbot_response(mental_state: str, user_message: str, 
@@ -179,7 +181,7 @@ Assistant:
     except Exception as e:
         error_message = f"Error in {model_name} inference: {str(e)}"
         logger.exception(error_message)
-        log_error("Manachat.py", "Error", error_message, -1)
+        log_error("Manachat.py", "Error", error_message)
         return "I'm sorry, I'm having trouble understanding you right now."
     if error:
         return f"⚠️ {error} - I'm sorry, I'm having trouble understanding you right now."

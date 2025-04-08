@@ -1,6 +1,7 @@
 import os
 import pandas as pd # type: ignore
 from datetime import datetime
+import inspect
 
 # Define the path for the error log file
 ERROR_LOG_FILE = "error_log.xlsx"
@@ -11,7 +12,7 @@ if not os.path.exists(ERROR_LOG_FILE):
     df = pd.DataFrame(columns=["File Name", "Error Type", "Error Name", "Code Line Number", "Debugged", "Status", "Timestamp"])
     df.to_excel(ERROR_LOG_FILE, index=False)
 
-def log_error(file_name: str, error_type: str, error_name: str, line_number: int, debugged: str = "No", status: str = "Pending"):
+def log_error(file_name: str, error_type: str, error_name: str, line_number: int = None, debugged: str = "No", status: str = "Pending"):
     """
     Log an error or warning to the error log file.
     
@@ -19,10 +20,15 @@ def log_error(file_name: str, error_type: str, error_name: str, line_number: int
         file_name (str): Name of the file where the error occurred.
         error_type (str): Type of the error (e.g., "Error", "Warning").
         error_name (str): Description of the error or warning.
-        line_number (int): Line number where the error occurred.
+        line_number (int): Line number where the error occurred. If None, it will be auto-detected.
         debugged (str): Whether the error has been debugged ("Yes" or "No").
         status (str): Current status of the error (e.g., "Pending", "Resolved").
     """
+    # Automatically detect the line number if not provided
+    if line_number is None:
+        frame = inspect.currentframe().f_back
+        line_number = frame.f_lineno
+
     # Load the existing error log
     df = pd.read_excel(ERROR_LOG_FILE)
 
