@@ -5,6 +5,7 @@ from huggingface_hub import InferenceClient  # type: ignore
 from dotenv import load_dotenv  # type: ignore
 from typing import List, Dict, Any
 import json
+from error_logger import log_error
 from fastapi.responses import JSONResponse  # type: ignore
 
 # New imports for sentiment analysis
@@ -309,25 +310,26 @@ def convert_user_responses(user_responses_list: List[Dict]) -> Dict[str, Any]:
     """
     Convert a list of answer objects from the front end to a dictionary
     keyed by the original question id.
-    
-    For main questions, the provided response IDs (e.g., "q1", "q2", …)
-    are mapped using the order of QUESTION_FLOW. For sub-questions (which
-    should already have their proper id), use the provided id.
     """
     result = {}
     main_index = 0
-    for response in user_responses_list:
-        response_id = response.get("id", "")
-        if response_id.startswith("q"):
-            # Map by order using QUESTION_FLOW
-            if main_index < len(QUESTION_FLOW):
-                key = QUESTION_FLOW[main_index]["id"]
+    try:
+        for response in user_responses_list:
+            response_id = response.get("id", "")
+            if response_id.startswith("q"):
+                # Map by order using QUESTION_FLOW
+                if main_index < len(QUESTION_FLOW):
+                    key = QUESTION_FLOW[main_index]["id"]
+                else:
+                    key = response_id
+                main_index += 1
             else:
                 key = response_id
-            main_index += 1
-        else:
-            key = response_id
-        result[key] = response["answer"]
+            result[key] = response["answer"]
+    except Exception as e:
+        error_message = f"Error converting user responses: {str(e)}"
+        logger.error(error_message)
+        log_error("Mananow.py", "Error", error_message, -1)
     return result
 
 def process_question_flow(question: Dict[str, Any], user_answers: List[Dict[str, str]], user_responses: Dict[str, Any], parent_id: str = None):
@@ -381,9 +383,13 @@ def process_question_flow(question: Dict[str, Any], user_answers: List[Dict[str,
                             for sub_question in question["follow_up"][option]:
                                 process_question_flow(sub_question, user_answers, user_responses, full_id)
         else:
-            logger.warning(f"No answer found for question ID: {full_id}")
+            warning_message = f"No answer found for question ID: {full_id}"
+            logger.warning(warning_message)
+            log_error("Mananow.py", "Warning", warning_message, -1)
     except Exception as e:
-        logger.error(f"Error processing question {question_id}: {str(e)}")
+        error_message = f"Error processing question {question_id}: {str(e)}"
+        logger.error(error_message)
+        log_error("Mananow.py", "Error", error_message, -1)
 
 def build_mentanow_prompt(user_responses: List[Dict]) -> str:
     """
@@ -402,7 +408,9 @@ def build_mentanow_prompt(user_responses: List[Dict]) -> str:
             process_question_flow(question, user_answers, converted_responses)
 
         if not user_answers:
-            logger.warning("No answers were processed from user_responses.")
+            warning_message = "No answers were processed from user_responses."
+            logger.warning(warning_message)
+            log_error("Mananow.py", "Warning", warning_message, -1)
             return "No valid answers were provided. Please ensure all required questions are answered."
 
         # Build the summary with proper numbering.
@@ -431,7 +439,9 @@ Guidelines:
         return prompt
 
     except Exception as e:
-        logger.error(f"Error building prompt: {str(e)}")
+        error_message = f"Error building prompt: {str(e)}"
+        logger.error(error_message)
+        log_error("Mananow.py", "Error", error_message, -1)
         return "Error generating assessment summary. Please check the input data."
 
 def generate_mentanow_report(user_answers: List[Dict]) -> str:
@@ -454,13 +464,17 @@ def generate_mentanow_report(user_answers: List[Dict]) -> str:
         response = requests.post(API_URL, headers=headers, json=payload, timeout=30)
         
         if response.status_code != 200:
-            logger.error(f"API Error: {response.status_code} - {response.text}")
+            error_message = f"API Error: {response.status_code} - {response.text}"
+            logger.error(error_message)
+            log_error("Mananow.py", "Error", error_message, -1)
             return "Error generating report. Please try again."
 
         return response.json()['choices'][0]['message']['content'].strip()
     
     except Exception as e:
-        logger.error(f"Report generation failed: {str(e)}")
+        error_message = f"Report generation failed: {str(e)}"
+        logger.error(error_message)
+        log_error("Mananow.py", "Error", error_message, -1)
         return "We encountered an error generating your report. Please try again later."
 '''
         # Call the inference client using the Together provider and the meta-llama model.
@@ -492,7 +506,9 @@ try:
     config = AutoConfig.from_pretrained(MODEL)
     model = AutoModelForSequenceClassification.from_pretrained(MODEL)
 except Exception as e:
-    logger.error(f"Failed to load sentiment analysis model: {str(e)}")
+    error_message = f"Failed to load sentiment analysis model: {str(e)}"
+    logger.error(error_message)
+    log_error("Mananow.py", "Error", error_message, -1)
     
 def preprocess(text: str) -> str:
     """Preprocess text by lowercasing, and replacing usernames and URLs with placeholders."""
@@ -520,9 +536,14 @@ def analyze_comments_sentiment(json_data: str) -> dict:
         if isinstance(data, dict):
             data = [data]
         elif not isinstance(data, list):
+            error_message = f"Parsed JSON is not a list or dict : {type(data)}"
+            logger.error(error_message)
             raise ValueError("Parsed JSON is not a list or dict.")
+        
     except Exception as e:
-        logger.warning("Full JSON parse failed, attempting line-by-line parsing. Error: %s", e)
+        warning_message = f"Full JSON parse failed, attempting line-by-line parsing. Error: {str(e)}"
+        logger.warning(warning_message)
+        log_error("Mananow.py", "Warning", warning_message, -1)
         for line in json_data.strip().splitlines():
             line = line.strip()
             if not line:
@@ -533,12 +554,16 @@ def analyze_comments_sentiment(json_data: str) -> dict:
                 item = json.loads(line)
                 data.append(item)
             except Exception as ex:
-                logger.warning("Skipping line due to error: %s", ex)
+                warning_message = f"Skipping line due to error: {str(ex)}"
+                logger.warning(warning_message)
+                log_error("Mananow.py", "Warning", warning_message, -1)
                 continue
 
     if not data:
-        logger.error("No valid JSON objects found in the uploaded file.")
-        return {"error": "No valid JSON objects found in the uploaded file."}
+        error_message = "No valid JSON objects found in the uploaded file."
+        logger.error(error_message)
+        log_error("Mananow.py", "Error", error_message, -1)
+        return {"error": error_message}
 
     positive_count = 0
     negative_count = 0
@@ -549,9 +574,15 @@ def analyze_comments_sentiment(json_data: str) -> dict:
         try:
             comment_text = item["string_map_data"]["Comment"]["value"]
         except KeyError:
+            warning_message = "Missing 'Comment' field in JSON object."
+            logger.warning(warning_message)
+            log_error("Mananow.py", "Warning", warning_message, -1)
             continue
 
         if not isinstance(comment_text, str) or not comment_text.strip():
+            warning_message = "Empty or invalid comment text."
+            logger.warning(warning_message)
+            log_error("Mananow.py", "Warning", warning_message, -1)
             continue
 
         processed_text = preprocess(comment_text)
@@ -565,7 +596,9 @@ def analyze_comments_sentiment(json_data: str) -> dict:
             # Debug log: print scores for each label
             logger.info("Text: '%s' | Scores: %s | Top label: %s", comment_text, scores, top_label)
         except Exception as ex:
-            logger.warning("Error processing comment '%s': %s", comment_text, ex)
+            warning_message = f"Error processing comment '{comment_text}': {str(ex)}"
+            logger.warning(warning_message)
+            log_error("Mananow.py", "Warning", warning_message, -1)
             continue
 
         # Count each sentiment category separately
