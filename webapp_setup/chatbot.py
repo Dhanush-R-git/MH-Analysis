@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates # type: ignore
 from pydantic import BaseModel, Field # type: ignore
 from reportlab.pdfgen import canvas # type: ignore
 from reportlab.lib.pagesizes import letter # type: ignore
+from error_logger import log_error
 import io
 import uvicorn # type: ignore
 from typing import List, Dict, Optional
@@ -64,10 +65,15 @@ async def upload_comments(file: UploadFile = File(...)):
         logger.info(f"Sentiment counts: {sentiment_counts}")
         # If an error key is present in sentiment_counts, return a 400 status.
         if "error" in sentiment_counts:
+            warning_message = f"Error in sentiment analysis: {sentiment_counts['error']}"
+            logger.warning(warning_message)
+            log_error("chatbot.py", "Warning", warning_message, -1)
             return JSONResponse(status_code=400, content=sentiment_counts)
         return JSONResponse(status_code=200, content=sentiment_counts)
     except Exception as e:
-        logger.error(f"Error processing uploaded file: {str(e)}")
+        error_message = f"Error processing uploaded file: {str(e)}"
+        logger.error(error_message)
+        log_error("chatbot.py", "Error", error_message, -1)
         return JSONResponse(status_code=500, content={"error": "Failed to process uploaded file."})
     
 # Endpoints for MentaNow UI
@@ -81,25 +87,31 @@ def mentanow_api(payload: MentaNowRequest):
     """
     Returns either the next question or a final 'report' based on the user's answers.
     """
-    user_answers = payload.userAnswers  # now correctly populated via alias
-    current_index = len(user_answers)
-    total_questions = len(QUESTION_FLOW)
+    try:
+        user_answers = payload.userAnswers  # now correctly populated via alias
+        current_index = len(user_answers)
+        total_questions = len(QUESTION_FLOW)
 
-    if current_index < total_questions:
-        next_question = QUESTION_FLOW[current_index].copy()
-        next_question.update({"number": current_index + 1, "total": total_questions})
-        return JSONResponse(content=next_question)
-    
-    # All questions answered: generate final report.
-    report = generate_mentanow_report(user_answers)
-    return JSONResponse(content={
-        "status": "complete",
-        "report": report,
-        "resources": [
-            {"name": "Crisis Hotline", "contact": "1-800-273-TALK"},
-            {"name": "Mental Health America", "url": "https://mhanational.org"}
-        ]
-    })
+        if current_index < total_questions:
+            next_question = QUESTION_FLOW[current_index].copy()
+            next_question.update({"number": current_index + 1, "total": total_questions})
+            return JSONResponse(content=next_question)
+        
+        # All questions answered: generate final report.
+        report = generate_mentanow_report(user_answers)
+        return JSONResponse(content={
+            "status": "complete",
+            "report": report,
+            "resources": [
+                {"name": "Crisis Hotline", "contact": "1-800-273-TALK"},
+                {"name": "Mental Health America", "url": "https://mhanational.org"}
+            ]
+        })
+    except Exception as e:
+        error_message = f"Error in ManaNow API: {str(e)}"
+        logger.error(error_message)
+        log_error("chatbot.py", "Error", error_message, -1)
+        return JSONResponse(status_code=500, content={"error": "Failed to process ManaNow request."})
 
 @app.post("/api/generate-pdf")
 async def generate_pdf(report_data: dict):
@@ -111,11 +123,9 @@ async def generate_pdf(report_data: dict):
         p.setFont("Helvetica", 12)
         y_position = 750
         line_height = 14
-        #text = p.beginText(40, 750)
         
         # Add report content
         for line in report_data['report'].split('\n'):
-           
             if y_position < 40:
                 p.showPage()
                 y_position = 750
@@ -131,8 +141,10 @@ async def generate_pdf(report_data: dict):
             headers={"Content-Disposition": "attachment; filename=MaṉaNow_report.pdf"}
         )
     except Exception as e:
+        error_message = f"Error generating PDF: {str(e)}"
+        logger.error(error_message)
+        log_error("chatbot.py", "Error", error_message, -1)
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/Manachat", response_class=HTMLResponse)
 async def chatbot_page(request: Request):
@@ -147,17 +159,27 @@ async def favicon():
 
 @app.get("/api/model-status")
 async def model_status():
-    # Check if the local model can be loaded
-    local_status = False
+    """Check the status of the local and inference models."""
     try:
-        _ = load_local_model()
-        local_status = True
-    except Exception:
+        # Check if the local model can be loaded
         local_status = False
-    return {
-        "Local-Provider": local_status,
-        "Inference-Provider": HF_TOKEN is not None
-    }
+        try:
+            _ = load_local_model()
+            local_status = True
+        except Exception as e:
+            warning_message = f"Local model loading failed: {str(e)}"
+            logger.warning(warning_message)
+            log_error("chatbot.py", "Warning", warning_message, -1)
+            local_status = False
+        return {
+            "Local-Provider": local_status,
+            "Inference-Provider": HF_TOKEN is not None
+        }
+    except Exception as e:
+        error_message = f"Error checking model status: {str(e)}"
+        logger.error(error_message)
+        log_error("chatbot.py", "Error", error_message, -1)
+        return JSONResponse(status_code=500, content={"error": error_message})
 
 @app.post("/api/chat")
 async def chat(chat_request: ChatRequest):
@@ -165,7 +187,10 @@ async def chat(chat_request: ChatRequest):
     try:
         user_message = chat_request.user_message.strip()
         if not user_message:
-            return JSONResponse(status_code=400, content={"error": "Message cannot be empty."})
+            warning_message = "Message cannot be empty."
+            logger.warning(warning_message)
+            log_error("chatbot.py", "Warning", warning_message, -1)
+            return JSONResponse(status_code=400, content={"error": warning_message})
         
         # Offload blocking model inference calls to background threads
         mental_state = await asyncio.to_thread(detect_mental_state, user_message)
@@ -179,8 +204,10 @@ async def chat(chat_request: ChatRequest):
         )
         return JSONResponse(content={"mental_state": mental_state, "response": chatbot_response})
     except Exception as e:
-        logger.exception("Error in /api/chat endpoint")
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        error_message = f"Error in /api/chat endpoint: {str(e)}"
+        logger.exception(error_message)
+        log_error("chatbot.py", "Error", error_message, -1)
+        return JSONResponse(status_code=500, content={"error": error_message})
     
 if __name__ == "__main__":
     uvicorn.run("chatbot:app", host="127.0.0.1", port=5000, reload=True)
