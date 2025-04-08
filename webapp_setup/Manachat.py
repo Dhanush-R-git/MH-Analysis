@@ -1,6 +1,7 @@
 import os
 import torch # type: ignore
 import logging
+from error_logger import log_error
 from dotenv import load_dotenv # type: ignore
 from transformers import AutoTokenizer, AutoModelForMaskedLM, AutoModelForCausalLM
 from huggingface_hub import InferenceClient # type: ignore
@@ -10,14 +11,19 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Externalized configuration via environment variables
-LOCAL_MODEL_NAME = os.getenv("LOCAL_MODEL_NAME", "meta-llama/Llama-3.2-3B-Instruct")
-MENTAL_MODEL_NAME = os.getenv("MENTAL_MODEL_NAME", "mental/mental-roberta-base")
-LOCAL_MAX_NEW_TOKENS = int(os.getenv("LOCAL_MAX_NEW_TOKENS", 100))
-INFERENCE_MAX_NEW_TOKENS = int(os.getenv("INFERENCE_MAX_NEW_TOKENS", 400))
-LOCAL_TOP_K = int(os.getenv("LOCAL_TOP_K", 50))
-LOCAL_TOP_P = float(os.getenv("LOCAL_TOP_P", 0.95))
-LOCAL_NO_REPEAT_NGRAM_SIZE = int(os.getenv("LOCAL_NO_REPEAT_NGRAM_SIZE", 2))
-LOCAL_TRUNCATION_LENGTH = int(os.getenv("LOCAL_TRUNCATION_LENGTH", 400))
+try:
+    LOCAL_MODEL_NAME = os.getenv("LOCAL_MODEL_NAME", "meta-llama/Llama-3.2-3B-Instruct")
+    MENTAL_MODEL_NAME = os.getenv("MENTAL_MODEL_NAME", "mental/mental-roberta-base")
+    LOCAL_MAX_NEW_TOKENS = int(os.getenv("LOCAL_MAX_NEW_TOKENS", 100))
+    INFERENCE_MAX_NEW_TOKENS = int(os.getenv("INFERENCE_MAX_NEW_TOKENS", 400))
+    LOCAL_TOP_K = int(os.getenv("LOCAL_TOP_K", 50))
+    LOCAL_TOP_P = float(os.getenv("LOCAL_TOP_P", 0.95))
+    LOCAL_NO_REPEAT_NGRAM_SIZE = int(os.getenv("LOCAL_NO_REPEAT_NGRAM_SIZE", 2))
+    LOCAL_TRUNCATION_LENGTH = int(os.getenv("LOCAL_TRUNCATION_LENGTH", 400))
+except Exception as e:
+    error_message = f"Error loading environment variables: {str(e)}"
+    logger.exception(error_message)
+    log_error("Manachat.py", "Error", error_message, -1)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -47,7 +53,9 @@ def load_local_model():
             local_model = AutoModelForCausalLM.from_pretrained(LOCAL_MODEL_NAME, token=HF_TOKEN)
             logger.info("Local fallback model loaded successfully with offloading.")
         except Exception as e:
-            logger.exception("Failed to load local fallback model")
+            error_message = f"Failed to load local fallback model: {str(e)}"
+            logger.exception(error_message)
+            log_error("Manachat.py", "Error", error_message, -1)
             raise RuntimeError("Local model not available")
     return local_model, local_tokenizer
 
@@ -58,19 +66,27 @@ try:
     mental_model = AutoModelForMaskedLM.from_pretrained(MENTAL_MODEL_NAME, token=HF_TOKEN)
     logger.info("Mental health model loaded successfully.")
 except Exception as e:
-    logger.exception("Failed to load mental health model")
+    error_message = f"Failed to load mental health model: {str(e)}"
+    logger.exception(error_message)
+    log_error("Manachat.py", "Error", error_message, -1)
     raise RuntimeError(f"Failed to load mental health model: {e}")
 
 def detect_mental_state(user_message: str) -> str:
     """Detect mental state using the mental health model."""
-    inputs = mental_tokenizer(user_message, return_tensors="pt", truncation=True, padding=True)
-    with torch.no_grad():
-        outputs = mental_model(**inputs)
-    logits = outputs.logits[:, :-1, :].mean(dim=1)
-    probs = torch.nn.functional.softmax(logits, dim=-1)
-    predicted_token_id = torch.argmax(probs, dim=-1)
-    mental_state = mental_tokenizer.decode(predicted_token_id)
-    return mental_state
+    try:
+        inputs = mental_tokenizer(user_message, return_tensors="pt", truncation=True, padding=True)
+        with torch.no_grad():
+            outputs = mental_model(**inputs)
+        logits = outputs.logits[:, :-1, :].mean(dim=1)
+        probs = torch.nn.functional.softmax(logits, dim=-1)
+        predicted_token_id = torch.argmax(probs, dim=-1)
+        mental_state = mental_tokenizer.decode(predicted_token_id)
+        return mental_state
+    except Exception as e:
+        error_message = f"Error detecting mental state: {str(e)}"
+        logger.error(error_message)
+        log_error("Manachat.py", "Error", error_message, -1)
+        return "Unable to detect mental state."
 
 def get_chatbot_response(mental_state: str, user_message: str, 
                          system_prompt: str, model_name: str, 
@@ -161,8 +177,9 @@ Assistant:
         else:
             raise ValueError(f"Unknown model selected: {model_name}")
     except Exception as e:
-        logger.exception(f"Error in {model_name} inference")
-        error = f"Error using {model_name}: {str(e)}"
+        error_message = f"Error in {model_name} inference: {str(e)}"
+        logger.exception(error_message)
+        log_error("Manachat.py", "Error", error_message, -1)
         return "I'm sorry, I'm having trouble understanding you right now."
     if error:
         return f"⚠️ {error} - I'm sorry, I'm having trouble understanding you right now."
