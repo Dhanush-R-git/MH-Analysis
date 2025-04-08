@@ -15,10 +15,9 @@
     }
     /* Translucent container with subtle blur for a calming effect */
     .content-container {
-      background: rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(6px);
     }
-    /* Ensure footer stays at bottom for short pages */
     html, body {
       min-height: 100%;
     }
@@ -30,16 +29,6 @@
     .main-content {
       flex: 1;
     }
-    input[type="date"] {
-      display: block;
-      width: 100%;
-      padding: 0.5rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 0.375rem;
-      background-color: #fff;
-      color: #333;
-    }
   </style>
 </head>
 <body class="hero-bg font-sans">
@@ -48,7 +37,7 @@
     <header class="bg-white/80 shadow-md" role="banner" aria-label="Site Header">
       <nav class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center" aria-label="Main Navigation">
         <a href="/" class="flex items-center gap-2 text-teal-600 hover:text-teal-800" aria-label="Home">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
           </svg>
           <span class="text-2xl font-bold">MaṉaNow</span>
@@ -68,7 +57,7 @@
         <section id="introSection" class="text-center space-y-6 animate__animated animate__fadeIn" aria-label="Assessment Introduction">
           <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Mental Wellness Check</h1>
           <p class="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto">
-            Take 3 minutes to complete this confidential assessment. Your answers help us provide personalized support and gentle guidance for your mind.
+            Take 3 minutes to complete this confidential assessment. Your answers help us provide personalized support and guidance.
           </p>
           <button onclick="startAssessment()"
                   class="mt-6 px-10 py-3 bg-teal-500 text-white rounded-full shadow-md hover:bg-teal-600 transition-transform transform hover:scale-105"
@@ -83,28 +72,24 @@
             <div class="flex justify-between items-center mb-6">
               <span id="questionNumber" class="text-gray-500">Question 1/?</span>
               <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden" aria-label="Progress Bar">
-                <div id="progressBar" class="h-full bg-teal-500 transition-all duration-300"></div>
+                <div id="progressBar" class="h-full bg-teal-500 rounded-full transition-all duration-300"></div>
               </div>
-            </div>
-            <!-- Date of Birth Input -->
-            <div id="dateOfBirthContainer" class="hidden">
-              <label for="dateOfBirth" class="block text-gray-700 font-medium mb-2">Please Enter your Date of Birth:</label>
-              <input type="date" id="dateOfBirth" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Select your date of birth" aria-label="Date of Birth">
             </div>
             <h2 id="questionTitle" class="text-2xl font-semibold text-gray-800 mb-4"></h2>
             <p id="questionText" class="text-gray-600 text-lg mb-6"></p>
+            <!-- Answer Container: Dynamically populated based on question type -->
             <div id="answerContainer" class="space-y-4"></div>
+            <!-- Follow-up Container for conditional questions -->
+            <div id="followUpContainer" class="mt-6"></div>
             <div class="flex justify-between mt-6">
-              <!-- Previous Button -->
               <button id="prevButton"
                       class="px-8 py-3 bg-gray-500 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors"
                       onclick="handlePrevious()"
                       aria-label="Go to Previous Question">
-                Previous
+                Prev
               </button>
-              <!-- Next Button -->
               <button id="nextButton"
-                      class="px-8 py-3 bg-teal-500 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-teal-600 transition-colors"
+                      class="px-8 py-3 bg-teal-500 text-white rounded-full hover:bg-teal-600 transition-colors"
                       onclick="handleNext()"
                       aria-label="Continue to Next Question">
                 Continue
@@ -112,7 +97,6 @@
             </div>
           </div>
         </section>
-
 
         <!-- Report Section -->
         <section id="reportSection" class="hidden animate__animated animate__fadeIn" aria-label="Assessment Report">
@@ -133,22 +117,20 @@
               </button>
             </div>
           </div>
-            <!-- Add a side box for reports -->
+          <!-- Report Sidebar for saved reports (optional) -->
           <div id="reportSidebar" class="fixed top-0 right-0 w-80 h-full bg-gray-100 shadow-lg hidden z-50">
             <div class="p-4 flex justify-between items-center bg-teal-500 text-white">
               <h3 class="text-lg font-bold">Saved Reports</h3>
               <button onclick="toggleReportSidebar()" class="text-white hover:text-gray-200">
-                Close
+                x
               </button>
             </div>
             <div id="savedReports" class="p-4 space-y-4 overflow-y-auto">
               <!-- Reports will be dynamically added here -->
             </div>
           </div>
-
-          <!-- Add a button to toggle the sidebar -->
-          <button onclick="toggleReportSidebar()" class="fixed top-4 right-4 bg-teal-500 text-white px-4 py-2 rounded-full shadow hover:bg-teal-600 z-50">
-            View Saved Reports
+          <button onclick="toggleReportSidebar()" class="fixed top-4 right-4 bg-teal-500 text-white px-4 py-2 rounded-full shadow hover:bg-teal-600 z-50" aria-label="View Saved Reports">
+            Saved Reports
           </button>
         </section>
       </div>
@@ -162,29 +144,10 @@
     </footer>
   </div>
 
-  <!-- Add a side box for reports
-  <div id="reportSidebar" class="fixed top-0 right-0 w-80 h-full bg-gray-100 shadow-lg hidden z-50">
-    <div class="p-4 flex justify-between items-center bg-teal-500 text-white">
-      <h3 class="text-lg font-bold">Saved Reports</h3>
-      <button onclick="toggleReportSidebar()" class="text-white hover:text-gray-200">
-        Close
-      </button>
-    </div>
-    <div id="savedReports" class="p-4 space-y-4 overflow-y-auto">
-      < Reports will be dynamically added here
-    </div>
-  </div> -->
-
-  <!-- Add a button to toggle the sidebar
-  <button onclick="toggleReportSidebar()" class="fixed top-4 right-4 bg-teal-500 text-white px-4 py-2 rounded-full shadow hover:bg-teal-600 z-50">
-    View Saved Reports
-  </button>-->
-
-  <!-- JavaScript for Assessment Flow -->
   <script>
     let currentStep = 0;
     let userAnswers = [];
-    let cachedQuestions = []; // Array to store fetched questions
+    let cachedQuestions = [];
 
     async function startAssessment() {
       document.getElementById('introSection').classList.add('hidden');
@@ -203,14 +166,12 @@
           })
         });
         const data = await response.json();
+        console.log("Fetched question:", data);
         if (data.status === 'complete') {
           showReport(data);
         } else {
           currentStep = data.number - 1;
-
-          // Cache the question
           cachedQuestions[currentStep] = data;
-
           updateQuestionUI(data);
         }
       } catch (error) {
@@ -226,61 +187,111 @@
       document.getElementById('progressBar').style.width = `${progress}%`;
 
       const container = document.getElementById('answerContainer');
-      container.innerHTML = ""; // Clear previous inputs
+      container.innerHTML = "";
+      // Clear follow-up container
+      document.getElementById('followUpContainer').innerHTML = "";
 
       // Render input based on question type
-      if (question.type === 'text') {
-        container.innerHTML = `
-          <textarea id="textAnswer" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${question.placeholder || 'Type your response...'}" aria-label="Your Answer"></textarea>
-        `;
-      } else if (question.type === 'radio') {
-        question.options.forEach(option => {
-          const div = document.createElement('div');
-          div.className = 'flex items-center p-3 rounded-lg hover:bg-teal-50 cursor-pointer border border-transparent transition-colors';
-          div.onclick = () => selectRadio(option, div);
-          div.innerHTML = `
-            <input type="radio" name="answer" value="${option}" class="form-radio h-5 w-5 text-teal-600" aria-label="${option}">
-            <label class="ml-3 text-gray-700">${option}</label>
+      switch(question.type) {
+        case 'text':
+          container.innerHTML = `
+            <label for="textAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
+            <textarea id="textAnswer" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${question.placeholder || 'Type your response...'}" aria-label="Your Answer"></textarea>
           `;
-          container.appendChild(div);
-        });
-      } else if (question.type === 'date') {
-        container.innerHTML = `
-          <label for="dateAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
-          <input type="date" id="dateAnswer" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Select your date of birth" aria-label="Date of Birth">
-        `;
-      } else if (question.type === 'number') {
-        container.innerHTML = `
-          <label for="numberAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
-          <input type="number" id="numberAnswer" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" min="${question.min || ''}" max="${question.max || ''}" step="${question.step || 1}" placeholder="${question.placeholder || ''}" aria-label="Number Input">
-        `;
-      } else if (question.type === 'checkbox') {
-        question.options.forEach(option => {
-          const div = document.createElement('div');
-          div.className = 'flex items-center p-3 rounded-lg hover:bg-teal-50 cursor-pointer border border-transparent transition-colors';
-          div.innerHTML = `
-            <input type="checkbox" name="answer" value="${option}" class="form-checkbox h-5 w-5 text-teal-600" aria-label="${option}">
-            <label class="ml-3 text-gray-700">${option}</label>
+          break;
+        case 'radio':
+          question.options.forEach(option => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center p-3 rounded-lg hover:bg-teal-50 cursor-pointer border border-transparent transition-colors';
+            div.onclick = () => {
+              selectRadio(option, div);
+              handleFollowUp(question, option);
+            };
+            div.innerHTML = `
+              <input type="radio" name="answer" value="${option}" class="form-radio h-5 w-5 text-teal-600" aria-label="${option}">
+              <label class="ml-3 text-gray-700">${option}</label>
+            `;
+            container.appendChild(div);
+          });
+          break;
+        case 'date':
+          container.innerHTML = `
+            <label for="dateAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
+            <input type="date" id="dateAnswer" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${question.placeholder || 'Select date'}" aria-label="Date Input">
           `;
-          container.appendChild(div);
-        });
-      } else if (question.type === 'likert_and_text') {
-        container.innerHTML = `
-          <label for="likertAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
-          <div id="likertScale" class="flex justify-between">
-            ${Object.entries(question.likert_scale).map(([value, label]) => `
-              <div class="flex flex-col items-center">
-                <input type="radio" name="likert" value="${value}" class="form-radio h-5 w-5 text-teal-600" aria-label="${label}">
-                <span class="text-sm text-gray-700">${label}</span>
+          // Optionally, you can enable flatpickr for better date UI.
+          flatpickr("#dateAnswer", {});
+          break;
+        case 'number':
+          if (question.unit_options) {
+            container.innerHTML = `
+              <label for="numberAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
+              <div class="flex gap-4">
+                <input type="number" id="numberAnswer" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" 
+                       min="${question.min || ''}" max="${question.max || ''}" step="${question.step || 1}" 
+                       placeholder="${question.placeholder || ''}" aria-label="Number Input">
+                <select id="numberAnswer_unit" class="p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                  ${question.unit_options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                </select>
               </div>
-            `).join('')}
-          </div>
-          <textarea id="textAnswer" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 mt-4" placeholder="${question.follow_up.placeholder || 'Describe your sleep issues here...'}" aria-label="Additional Details"></textarea>
-        `;
+            `;
+          } else {
+            container.innerHTML = `
+              <label for="numberAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
+              <input type="number" id="numberAnswer" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" 
+                     min="${question.min || ''}" max="${question.max || ''}" step="${question.step || 1}" 
+                     placeholder="${question.placeholder || ''}" aria-label="Number Input">
+            `;
+          }
+          break;
+       /*case 'checkbox':
+          question.options.forEach(option => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center p-3 rounded-lg hover:bg-teal-50 cursor-pointer border border-transparent transition-colors';
+            div.innerHTML = `
+              <input type="checkbox" name="${question.id}" value="${option}" class="form-checkbox h-5 w-5 text-teal-600" onchange="handleFollowUp(${JSON.stringify(question)}, '${option}')">
+              <label class="ml-3 text-gray-700">${option}</label>
+            `;
+            container.appendChild(div);
+          });
+          break; */
+        case 'checkbox':
+          container.innerHTML = `
+            <div class="input-container">
+              <label class="input-label">${question.text}</label>
+              <div class="space-y-2">
+                ${question.options.map(option => `
+                  <div class="checkbox--option">
+                    <input type="checkbox" 
+                          name="${question.id}" 
+                          value="${option}" 
+                          class="form-checkbox h-5 w-5 text-teal-600"
+                          onchange="handleCheckboxFollowUp(${JSON.stringify(question)})">
+                    <label class="ml-3 text-gray-700">${option}</label>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+          break;
+        case 'likert_and_text':
+          container.innerHTML = `
+            <label class="block text-gray-700 font-medium mb-2">${question.text}</label>
+            <div class="flex space-x-4 mb-4">
+              ${Object.entries(question.likert_scale).map(([key, label]) => `
+                <label class="flex flex-col items-center">
+                  <input type="radio" name="likert" value="${key}" class="form-radio text-teal-600">
+                  <span class="text-sm text-gray-700">${label}</span>
+                </label>
+              `).join('')}
+            </div>
+            <label for="likertText" class="block text-gray-700 font-medium mb-2">Additional Details:</label>
+            <textarea id="likertText" rows="2" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="Type your response..."></textarea>
+          `;
+          break;
+        default:
+          container.innerHTML = `<p class="text-red-500">Unknown question type: ${question.type}</p>`;
       }
-
-      // Enable or disable the "Previous" button
-      document.getElementById('prevButton').disabled = currentStep === 0;
     }
 
     function selectRadio(value, element) {
@@ -293,28 +304,150 @@
       radio.checked = true;
     }
 
-    function handlePrevious() {
-      if (currentStep > 0) {
-        // Decrement the current step
-        currentStep--;
+    // Handle follow-up questions if defined for a selected option.
+    function handleFollowUp(question, selectedOption) {
+      const followUpContainer = document.getElementById('followUpContainer');
+      followUpContainer.innerHTML = ""; // Clear previous follow-up questions
+      
+      if (question.follow_up && question.follow_up[selectedOption]) {
+        question.follow_up[selectedOption].forEach(followUpQuestion => {
+          const div = document.createElement('div');
+          div.className = 'mt-4';
 
-        // Remove the last answer from the userAnswers array
-        userAnswers.pop();
+          if (followUpQuestion.type === 'text') {
+            div.innerHTML = `
+              <label for="${followUpQuestion.id}" class="block text-gray-700 font-medium mb-2">${followUpQuestion.title}</label>
+              <textarea id="${followUpQuestion.id}" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${followUpQuestion.placeholder || 'Type your response...'}" aria-label="${followUpQuestion.title}"></textarea>
+            `;
+          
+          } else if (followUpQuestion.type === 'number' && followUpQuestion.unit_options) {
+            div.innerHTML = `
+              <label for="${followUpQuestion.id}" class="block text-gray-700 font-medium mb-2">${followUpQuestion.title}</label>
+              <div class="flex gap-4">
+                <input type="number" id="${followUpQuestion.id}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${followUpQuestion.placeholder || ''}" aria-label="${followUpQuestion.title}">
+                <select id="${followUpQuestion.id}_unit" class="p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                  ${followUpQuestion.unit_options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                </select>
+              </div>
+            `;
+          } else if (followUpQuestion.type === 'number') {
+            div.innerHTML = `
+              <label for="${followUpQuestion.id}" class="block text-gray-700 font-medium mb-2">${followUpQuestion.title}</label>
+              <input type="number" id="${followUpQuestion.id}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${followUpQuestion.placeholder || ''}" aria-label="${followUpQuestion.title}">
+            `;
+          }
 
-        // Fetch the previous question from the server or local cache
-        const previousQuestion = cachedQuestions[currentStep];
-        if (previousQuestion) {
-          updateQuestionUI(previousQuestion);
-        }
+          const selectedOptions = Array.from(document.querySelectorAll(`input[name="${question.id}"]:checked`)).map(cb => cb.value);
+          selectedOptions.forEach(option => {
+            if (followUpQuestion.type === 'checkbox' ) {
+              let checkHtml = `<label class="block text-gray-700 font-medium mb-2">${followUpQuestion.title}</label><div class="flex flex-wrap gap-4">`;
+              followUpQuestion.options.forEach(opt => {
+                checkHtml += `
+                  <label class="flex items-center">
+                    <input type="checkbox" name="${followUpQuestion.id}" value="${opt}" class="form-checkbox text-teal-600" onchange="handleFollowUp(${JSON.stringify(followUpQuestion)})">
+                    <span class="ml-2 text-gray-700">${opt}</span>
+                  </label>
+                `;
+              });
+              checkHtml += "</div>";
+              div.innerHTML = checkHtml;
+            }
+          });
+
+          followUpContainer.appendChild(div);
+        });
       }
-
-      // Disable the "Previous" button if on the first question
-      document.getElementById('prevButton').disabled = currentStep === 0;
     }
+    /*
+    // Updated handleCheckboxFollowUp function
+    function handleCheckboxFollowUp(question) {
+      const followUpContainer = document.getElementById('followUpContainer');
+      followUpContainer.innerHTML = "";
 
+      // Get all checked checkboxes
+      const checkboxes = document.querySelectorAll(`input[name="${question.id}"]:checked`);
+      const selectedOptions = Array.from(checkboxes).map(cb => cb.value);
+
+      // Create a container for all follow-ups
+      const followUpWrapper = document.createElement('div');
+      followUpWrapper.className = 'follow-up-container pl-4 border-l-2 border-teal-200 mt-4';
+
+      selectedOptions.forEach(option => {
+        if (question.follow_up && question.follow_up[option]) {
+          question.follow_up[option].forEach(followUpQuestion => {
+            const div = document.createElement('div');
+            div.className = 'mt-4 pl-4 border-l-2 border-teal-200';
+            
+            if (followUpQuestion.type === 'text') {
+              div.innerHTML = `
+                <div class="input-container">
+                  <label class="input-label">${followUpQuestion.title}</label>
+                  <textarea class="text-input" 
+                            rows="2"
+                            data-parent-option="${option}"
+                            data-question-id="${followUpQuestion.id}"
+                            placeholder="${followUpQuestion.placeholder || ''}"
+                            aria-label="${followUpQuestion.title}"></textarea>
+                </div>
+              `;
+            }
+            else if (followUpQuestion.type === 'number') {
+              div.innerHTML = `
+                <label class="input-label">${followUpQuestion.title}</label>
+                <div class="flex gap-4">
+                  <input type="number" 
+                        class="text-input"
+                        placeholder="${followUpQuestion.placeholder || ''}"
+                        data-question-id="${followUpQuestion.id}">
+                  ${followUpQuestion.unit_options ? `
+                    <select class="unit-select">
+                      ${followUpQuestion.unit_options.map(unit => `
+                        <option value="${unit}">${unit}</option>
+                      `).join('')}
+                    </select>
+                  ` : ''}
+                </div>
+              `;
+            } 
+            
+            followUpWrapper.appendChild(div);
+          });
+        }
+      });
+
+      if (followUpWrapper.children.length > 0) {
+        followUpContainer.appendChild(followUpWrapper);
+      }
+    } */
+
+    /*function handleCheckboxFollowUp(question) {
+      const followUpContainer = document.getElementById('followUpContainer');
+      followUpContainer.innerHTML = ""; // Clear previous follow-up questions
+
+      const selectedOptions = Array.from(document.querySelectorAll(`input[name="${question.id}"]:checked`)).map(cb => cb.value);
+
+      selectedOptions.forEach(option => {
+        if (question.follow_up && question.follow_up[option]) {
+          question.follow_up[option].forEach(followUpQuestion => {
+            const div = document.createElement('div');
+            div.className = 'mt-4';
+
+            if (followUpQuestion.type === 'text') {
+              div.innerHTML = `
+                <label for="${followUpQuestion.id}" class="block text-gray-700 font-medium mb-2">${followUpQuestion.title}</label>
+                <textarea id="${followUpQuestion.id}" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${followUpQuestion.placeholder || 'Type your response...'}" aria-label="${followUpQuestion.title}"></textarea>
+              `;
+            }
+            followUpContainer.appendChild(div);
+          });
+        }
+      });
+    } */
+   
+    // Update handleNext to store complex answers
     async function handleNext() {
       const answer = getCurrentAnswer();
-      if (!answer) {
+      if (!answer || (answer.selections && answer.selections.length === 0)) {
         showError("Please provide an answer before continuing");
         return;
       }
@@ -326,6 +459,16 @@
       await fetchQuestion();
     }
 
+    function handlePrevious() {
+      if (currentStep > 0) {
+        currentStep--;
+        const previousQuestion = cachedQuestions[currentStep];
+        userAnswers.pop(); // Remove the last answer
+        document.getElementById('followUpContainer').innerHTML = ""; // Clear follow-up container
+        updateQuestionUI(previousQuestion);
+      }
+    }
+    // Updated getCurrentAnswer to handle checkbox follow-ups
     function getCurrentAnswer() {
       const radio = document.querySelector('input[name="answer"]:checked');
       if (radio) return radio.value;
@@ -334,20 +477,43 @@
       if (textarea) return textarea.value.trim();
 
       const dateInput = document.getElementById('dateAnswer');
-      if (dateInput) return dateInput.value.trim();
+      if (dateInput) return dateInput.value;
 
       const numberInput = document.getElementById('numberAnswer');
-      if (numberInput) return numberInput.value.trim();
-
-      const checkboxes = document.querySelectorAll('input[name="answer"]:checked');
-      if (checkboxes.length > 0) {
-        return Array.from(checkboxes).map(checkbox => checkbox.value);
+      if (numberInput) {
+        const unitSelect = document.getElementById(`${numberInput.id}_unit`);
+        const unit = unitSelect ? unitSelect.value : "";
+        return numberInput.value + (unit ? ` ${unit}` : "");
       }
 
       const likert = document.querySelector('input[name="likert"]:checked');
-      if (likert) return likert.value;
+      if (likert) {
+        const extraText = document.getElementById('likertText') ? document.getElementById('likertText').value.trim() : "";
+        return extraText ? `${likert.value} - ${extraText}` : likert.value;
+      }
 
-      return null; // Return null if no valid input is found
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+      if (checkboxes.length > 0) {
+        const answers = {
+          main: Array.from(checkboxes).map(cb => cb.value),
+          details: {}
+        };
+        // Collect follow-up answers
+        document.querySelectorAll('[data-question-id]').forEach(element => {
+          const questionId = element.dataset.questionId;
+          const parentOption = element.dataset.parentOption;
+          if (element.tagName === 'TEXTAREA') {
+            //answers.followUps[questionId] = element.value.trim();
+            answer.details[parentOption] = answer.details[parentOption] || {};
+            answer.details[parentOption][questionId] = element.value.trim();
+          } /*else if (element.tagName === 'INPUT') {
+            const unit = element.parentElement.querySelector('select')?.value || '';
+            answers.followUps[questionId] = `${element.value} ${unit}`.trim();
+          }*/
+        });
+        return answers;
+      }
+      return null;
     }
 
     function showReport(data) {
@@ -377,13 +543,9 @@
         resources: document.getElementById('resourcesSection').innerHTML,
         timestamp: new Date().toISOString()
       };
-
-      // Save the report to localStorage
       const savedReports = JSON.parse(localStorage.getItem('savedReports')) || [];
       savedReports.push(reportData);
       localStorage.setItem('savedReports', JSON.stringify(savedReports));
-
-      // Add the report to the sidebar
       const savedReportsContainer = document.getElementById('savedReports');
       const reportElement = document.createElement('div');
       reportElement.className = 'p-4 bg-white rounded-lg shadow';
@@ -394,9 +556,9 @@
         </button>
       `;
       savedReportsContainer.appendChild(reportElement);
-
       alert('Report saved successfully!');
     }
+    
 
     function downloadSpecificReport(index) {
       const savedReports = JSON.parse(localStorage.getItem('savedReports')) || [];
@@ -405,7 +567,6 @@
         alert('Report not found.');
         return;
       }
-
       const blob = new Blob([report.content], { type: 'text/html' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -414,28 +575,6 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    }
-
-    // Load saved reports on page load
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedReports = JSON.parse(localStorage.getItem('savedReports')) || [];
-      const savedReportsContainer = document.getElementById('savedReports');
-      savedReports.forEach((report, index) => {
-        const reportElement = document.createElement('div');
-        reportElement.className = 'p-4 bg-white rounded-lg shadow';
-        reportElement.innerHTML = `
-          <h4 class="text-lg font-semibold text-gray-800">Report - ${new Date(report.timestamp).toLocaleString()}</h4>
-          <button onclick="downloadSpecificReport(${index})" class="text-teal-600 hover:underline">
-            Download Report
-          </button>
-        `;
-        savedReportsContainer.appendChild(reportElement);
-      });
-    });
-    
-    function toggleReportSidebar() {
-      const sidebar = document.getElementById('reportSidebar');
-      sidebar.classList.toggle('hidden');
     }
 
     function showError(message) {

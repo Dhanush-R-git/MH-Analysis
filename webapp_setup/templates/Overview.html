@@ -15,6 +15,9 @@
       max-width: 400px;
       height: 300px;
     }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -31,8 +34,8 @@
   </nav>
 
   <!-- Main Content -->
-  <section class="container mx-auto px-4 py-12">
-    <h1 class="text-4xl font-bold text-blue-600 text-center mb-8">Welcome to Maṉa</h1>
+  <section class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Maṉa Services">
+    <h1 class="text-4xl font-bold text-blue-600 text-center mb-8">Welcome to Maṉa - மனம் அமைதியாக இருக்கிறது</h1>
     <p class="text-lg text-gray-700 max-w-3xl mx-auto text-center mb-12">
       Maṉa is a web-based application for mental health analysis via social media.
       Our system uses advanced NLP models to analyze your social media comments and offers personalized guidance.
@@ -41,7 +44,7 @@
     <!-- Platform Descriptions Box -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12" aria-label="Platform Descriptions">
       <!-- ManaChat Box -->
-      <div class="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+      <div class="bg-white p-6 rounded-lg shadow-md items-center content-box">
         <div class="mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M2 3h20v2H2V3zm0 4h20v2H2V7zm0 4h14v2H2v-2zm0 4h20v2H2v-2z"/>
@@ -59,7 +62,7 @@
         </a>
       </div>
       <!-- ManaNow Box -->
-      <div class="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+      <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
         <div class="mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 2L1 21h22L12 2zm0 3.84L19.53 19H4.47L12 5.84z"/>
@@ -81,6 +84,9 @@
 
     <!-- Assessment Trigger Explanation Box (conditionally shown) -->
     <div id="assessmentExplanation" class="bg-white p-6 rounded-lg shadow mb-12 hidden" aria-label="Assessment Explanation">
+      <div id="spinnerExplanation" class="hidden flex justify-center items-center h-32">
+        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-600"></div>
+      </div>
       <h2 class="text-xl font-semibold mb-2">Why Proceed to a Full Assessment?</h2>
         <p class="text-gray-700 mb-4">
           Our analysis shows that the overall negative sentiment in your comments is higher than the positive.
@@ -122,6 +128,9 @@
         </div>
         <!-- Right Column: Chart Visualization -->
         <div class="md:w-1/2 flex items-center justify-center">
+          <div id="spinnerChart" class="hidden flex justify-center items-center h-32">
+            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
+          </div>
           <div id="chartContainer" class="chart-container hidden" aria-label="Sentiment Analysis Chart">
             <canvas id="sentimentChart"></canvas>
           </div>
@@ -139,6 +148,9 @@
 
     <!-- Detailed Sentiment Table Section (conditionally shown) -->
     <div id="sentimentTableSection" class="bg-white p-6 rounded-lg shadow hidden" aria-label="Detailed Sentiment Analysis">
+      <div id="spinnerTable" class="hidden flex justify-center items-center h-32">
+        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-600"></div>
+      </div>
       <h3 class="text-xl font-semibold text-gray-800 mb-4">Detailed Sentiment Analysis</h3>
       <div class="overflow-x-auto">
         <table class="min-w-full bg-white border border-gray-200 rounded-lg">
@@ -171,35 +183,53 @@
       const fileInput = document.getElementById('fileUpload');
       const uploadResult = document.getElementById('uploadResult');
       const assessmentExplanation = document.getElementById('assessmentExplanation');
+      const chartContainer = document.getElementById('chartContainer');
+      const sentimentTableSection = document.getElementById('sentimentTableSection');
+      const spinnerChart = document.getElementById('spinnerChart');
+      const spinnerTable = document.getElementById('spinnerTable');
+      const spinnerExplanation = document.getElementById('spinnerExplanation');
 
       if (!fileInput.files.length) {
         alert("Please select a file to upload.");
         return;
       }
+
       const file = fileInput.files[0];
       const formData = new FormData();
       formData.append("file", file);
+
+      // Show spinners and hide content
+      spinnerChart.classList.remove('hidden');
+      spinnerTable.classList.remove('hidden');
+      spinnerExplanation.classList.remove('hidden');
+      chartContainer.classList.add('hidden');
+      sentimentTableSection.classList.add('hidden');
+      assessmentExplanation.classList.add('hidden');
 
       try {
         const response = await fetch('/api/upload-comments', {
           method: 'POST',
           body: formData
         });
+
         if (!response.ok) {
           console.error("Response not ok:", response.statusText);
           throw new Error("Network response was not ok");
         }
+
         const result = await response.json();
+
         if (result.error) {
           uploadResult.textContent = "Error processing file: " + result.error;
           return;
         }
+
         uploadResult.textContent =
           `Sentiment Analysis - Positive: ${result.positive}, Neutral: ${result.neutral}, Negative: ${result.negative}`;
-        
+
         // Display the doughnut chart
         showDoughnutChart(result.positive, result.neutral, result.negative);
-        
+
         // If negative exceeds positive, show the assessment explanation and detailed table
         if (result.negative > result.positive) {
           assessmentExplanation.classList.remove('hidden');
@@ -208,14 +238,21 @@
           }
         } else {
           assessmentExplanation.classList.add('hidden');
-          document.getElementById('sentimentTableSection').classList.add('hidden');
+          sentimentTableSection.classList.add('hidden');
         }
       } catch (error) {
         console.error("Upload error:", error);
         uploadResult.textContent = "Error uploading file. Please try again.";
         if (sentimentChart) sentimentChart.destroy();
         assessmentExplanation.classList.add('hidden');
-        document.getElementById('sentimentTableSection').classList.add('hidden');
+        sentimentTableSection.classList.add('hidden');
+      } finally {
+        // Hide spinners and show content
+        spinnerChart.classList.add('hidden');
+        spinnerTable.classList.add('hidden');
+        spinnerExplanation.classList.add('hidden');
+        chartContainer.classList.remove('hidden');
+        sentimentTableSection.classList.remove('hidden');
       }
     }
 

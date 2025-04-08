@@ -48,18 +48,20 @@
 
     /* Top-left logo */
     .logo-top-left {
-      top: 0;
-      left: 1;
+      top: 10%; /* Adjust to fit within the body area */
+      left: 5%; /* Adjust to fit within the body area */
       transform: rotate(-9deg); /* Rotates the logo slightly */
-      width: 500px; /* Adjust size as needed */
+      width: 200px; /* Adjust size to fit */
+      max-width: 30vw; /* Ensure responsiveness */
     }
 
     /* Bottom-right logo */
     .logo-bottom-right {
-      bottom: 0;
-      right: 0;
+      bottom: 10%; /* Adjust to fit within the body area */
+      right: 5%; /* Adjust to fit within the body area */
       transform: rotate(160deg); /* Rotates the logo slightly */
-      width: 500px; /* Adjust size as needed */
+      width: 200px; /* Adjust size to fit */
+      max-width: 30vw; /* Ensure responsiveness */
     }
   </style>
 </head>
@@ -138,7 +140,7 @@
     </section>
 
     <!-- Footer fixed at bottom -->
-    <footer class="bg-gray-200 py-4" role="contentinfo" aria-label="Site Footer">
+    <footer class="bg-black-200 py-4" role="contentinfo" aria-label="Site Footer">
       <div class="container mx-auto text-center text-gray-600">
         &copy; 2025 Maṉa. All rights reserved.
       </div>

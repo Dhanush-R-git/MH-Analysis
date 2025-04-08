@@ -3,7 +3,7 @@ import logging
 import requests # type: ignore
 from huggingface_hub import InferenceClient  # type: ignore
 from dotenv import load_dotenv  # type: ignore
-from typing import List, Dict
+from typing import List, Dict, Any
 import json
 from fastapi.responses import JSONResponse  # type: ignore
 
@@ -62,6 +62,7 @@ QUESTION_FLOW = [
     {
         "id": "person_age",
         "title": "What is your age ?",
+        "text": "Please enter your age.",
         "type": "number",
         "min": 16,
         "max": 100,
@@ -75,13 +76,14 @@ QUESTION_FLOW = [
         "type": "radio",
         "options": ["Yes", "No"],
         "follow_up": {
-            "yes": [
+            "Yes": [
                 {
                     "id": "cigarettes_per_day",
-                    "title": "How many cigarettes do you smoke per day?",
+                    "title": "How many cigarettes do you smoke?",
                     "text": "Please enter the number of cigarettes you smoke daily.",
                     "type": "number",
-                    "placeholder": "Enter number of cigarettes"
+                    "placeholder": "Enter number of cigarettes you smoke",
+                    "unit_options": ["Per Week", "Per Day"]
                 },
                 {
                     "id": "smoking_duration",
@@ -101,7 +103,7 @@ QUESTION_FLOW = [
         "type": "radio",
         "options": ["Yes", "No"],
         "follow_up": {
-            "yes": [
+            "Yes": [
                 {
                     "id": "drinks_per_week",
                     "title": "How many alcoholic drinks do you consume per week?",
@@ -127,7 +129,7 @@ QUESTION_FLOW = [
         "type": "radio",
         "options": ["Yes", "No"],
         "follow_up": {
-            "yes": [
+            "Yes": [
                 {
                     "id": "medication_list",
                     "title": "Please list the medications you are currently taking.",
@@ -202,7 +204,7 @@ QUESTION_FLOW = [
         "type": "radio",
         "options": ["Increased", "Decreased", "Normal"],
         "follow_up": {
-            "increased": [
+            "Increased": [
                 {
                     "id": "increased_appetite_reason",
                     "title": "Do you know why your appetite has increased?",
@@ -211,7 +213,7 @@ QUESTION_FLOW = [
                     "placeholder": "Enter your response here..."
                 }
             ],
-            "decreased": [
+            "Decreased": [
                 {
                     "id": "decreased_appetite_reason",
                     "title": "Do you know why your appetite has decreased?",
@@ -243,7 +245,7 @@ QUESTION_FLOW = [
         "type": "radio",
         "options": ["Yes", "No"],
         "follow_up": {
-            "yes": [
+            "Yes": [
                 {
                     "id": "relationship_type",
                     "title": "What type of relationship problem are you experiencing?",
@@ -303,29 +305,137 @@ QUESTION_FLOW = [
     }
 ]
 
-def build_mentanow_prompt(user_answers: List[Dict]) -> str:
-    """Construct a structured prompt summarizing the user's answers."""
-    summary = "\n".join(
-        f"Q{i+1}: {ans['question']}\nA{i+1}: {ans['answer']}\n"
-        for i, ans in enumerate(user_answers)
-    )
-    return f"""Mental Health Assessment Summary:
+def convert_user_responses(user_responses_list: List[Dict]) -> Dict[str, Any]:
+    """
+    Convert a list of answer objects from the front end to a dictionary
+    keyed by the original question id.
+    
+    For main questions, the provided response IDs (e.g., "q1", "q2", …)
+    are mapped using the order of QUESTION_FLOW. For sub-questions (which
+    should already have their proper id), use the provided id.
+    """
+    result = {}
+    main_index = 0
+    for response in user_responses_list:
+        response_id = response.get("id", "")
+        if response_id.startswith("q"):
+            # Map by order using QUESTION_FLOW
+            if main_index < len(QUESTION_FLOW):
+                key = QUESTION_FLOW[main_index]["id"]
+            else:
+                key = response_id
+            main_index += 1
+        else:
+            key = response_id
+        result[key] = response["answer"]
+    return result
+
+def process_question_flow(question: Dict[str, Any], user_answers: List[Dict[str, str]], user_responses: Dict[str, Any], parent_id: str = None):
+    """
+    Recursively process the QUESTION_FLOW to include sub-questions and their answers.
+    Handles nested follow-up questions and checkbox responses.
+    """
+    try:
+        question_id = question["id"]
+        full_id = f"{parent_id}.{question_id}" if parent_id else question_id
+
+        # Look for answer using the full id or base question id.
+        answer = user_responses.get(full_id) or user_responses.get(question_id)
+        
+        if answer is not None:
+            logger.info(f"Processing question: {question['title']} with answer: {answer}")
+
+            # Handle different answer structures
+            if isinstance(answer, dict) and 'selections' in answer:
+                # Checkbox answer with details
+                main_answer = ", ".join(answer['selections'])
+                user_answers.append({
+                    "question": question["title"],
+                    "answer": main_answer
+                })
+                # Process details for checkbox options
+                if 'details' in answer:
+                    for option, sub_answers in answer['details'].items():
+                        for sub_id, sub_answer in sub_answers.items():
+                            sub_question = next(
+                                (q for q in question.get('follow_up', {}).get(option, [])
+                                 if q['id'] == sub_id), None
+                            )
+                            if sub_question:
+                                process_question_flow(sub_question, user_answers, {sub_id: sub_answer}, full_id)
+            else:
+                # Simple answer
+                user_answers.append({
+                    "question": question["title"],
+                    "answer": str(answer)
+                })
+
+            # Process follow-up questions for radio or checkbox types.
+            if "follow_up" in question:
+                if question["type"] == "radio" and answer in question["follow_up"]:
+                    for sub_question in question["follow_up"][answer]:
+                        process_question_flow(sub_question, user_answers, user_responses, full_id)
+                elif question["type"] == "checkbox" and isinstance(answer, dict):
+                    for option in answer.get('selections', []):
+                        if option in question["follow_up"]:
+                            for sub_question in question["follow_up"][option]:
+                                process_question_flow(sub_question, user_answers, user_responses, full_id)
+        else:
+            logger.warning(f"No answer found for question ID: {full_id}")
+    except Exception as e:
+        logger.error(f"Error processing question {question_id}: {str(e)}")
+
+def build_mentanow_prompt(user_responses: List[Dict]) -> str:
+    """
+    Construct a structured prompt summarizing the user's answers,
+    including sub-questions. The provided user_responses is a list,
+    so it is first converted into a dictionary keyed by question id.
+    """
+    logger.info(f"Raw user responses: {json.dumps(user_responses, indent=2)}")
+    # Convert the list of answers into a dictionary.
+    converted_responses = convert_user_responses(user_responses)
+    user_answers = []
+
+    try:
+        # Process the main QUESTION_FLOW and include sub-questions.
+        for question in QUESTION_FLOW:
+            process_question_flow(question, user_answers, converted_responses)
+
+        if not user_answers:
+            logger.warning("No answers were processed from user_responses.")
+            return "No valid answers were provided. Please ensure all required questions are answered."
+
+        # Build the summary with proper numbering.
+        summary_lines = []
+        for i, ans in enumerate(user_answers, 1):
+            summary_lines.append(f"Q{i}: {ans['question']}")
+            summary_lines.append(f"A{i}: {ans['answer']}\n")
+
+        summary = "\n".join(summary_lines)
+
+        prompt = f"""Mental Health Assessment Summary:
 {summary}
-"GENERATE A Complete REPORT BASED ON MENTAL HEALTH ASSESSMENT SUMMARY OF USER."
-note: 
+
 Please provide:
-1. A concise analysis of the user's mental state.
-2. Three actionable recommendations.
-3. Suggestions for professional help if needed.
+1. A concise analysis of the user's mental state
+2. Three actionable recommendations
+3. Suggestions for professional help if needed
 
 Guidelines:
-- Use empathetic, non-judgmental language.
-- Avoid medical terminology.
-- Focus on practical strategies.
-- Include crisis resources if warranted."""
+- Use empathetic, non-judgmental language
+- Avoid medical terminology
+- Focus on practical strategies
+- Include crisis resources if warranted"""
+
+        logger.info(f"Generated prompt:\n{prompt}")
+        return prompt
+
+    except Exception as e:
+        logger.error(f"Error building prompt: {str(e)}")
+        return "Error generating assessment summary. Please check the input data."
 
 def generate_mentanow_report(user_answers: List[Dict]) -> str:
-    """Generate assessment report with error handling using meta-llama/Llama-3.2-3B-Instruct."""
+    """Generate assessment report with error handling using deepseek-ai model."""
     try:
         prompt = build_mentanow_prompt(user_answers)
         logger.info(f"Generated prompt:\n{prompt}")
@@ -336,7 +446,7 @@ def generate_mentanow_report(user_answers: List[Dict]) -> str:
         }
         payload = {
             "messages": [{"role": "user", "content": prompt}],
-            "model": "deepseek-ai/DeepSeek-R1",
+            "model": "deepseek-ai/DeepSeek-R11",
             "max_tokens": 500,
             "temperature": 0.7
         }
