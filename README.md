@@ -51,6 +51,7 @@ python webapp_setup/chatbot.py
 ## System Architecture
 ![architecture drawio](https://github.com/user-attachments/assets/e54b82b2-c00f-4b75-8542-7e4737a2d0e9)
 
+## Sequence Diagram
 ```mermaid
 sequenceDiagram
     actor User as 🧑‍💻 User
@@ -82,6 +83,8 @@ sequenceDiagram
     User ->> MaṉaChat: Asks for guidance 💡
     MaṉaChat -->> User: Provides personalized mental health support 🤗
 ```
+
+## Flow chart
 ```mermaid
 graph TD;
     A[User Visits Homepage] -->|Selects MaṉaChat| B(MaṉaChat);
