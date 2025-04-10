@@ -1,6 +1,5 @@
 # Maṉa
-
-This project focuses on leveraging machine learning and natural language processing (NLP) techniques to analyze mental health-related text data. It includes a fine-tuned version of the Roberta transformer model, named MHRoberta, specifically designed for mental health analysis tasks. The model is trained using the PEFT (Parameter-Efficient Fine-Tuning) method on a mental health dataset.
+Maṉa is a web-based application designed to analyze mental health via social media interactions. The system leverages user-generated comments on posts and tweets to assess emotional well-being. By aggregating social media data through APIs or user uploads, Maṉa employs a fine-tuned RoBERTa model to perform sentiment analysis, classifying interactions as either positive or negative. When negative sentiments prevail, the system activates MaṉaNow—a dynamic questioning AI that conducts an in-depth mental health assessment through a series of targeted questions and ultimately generates a personalized report. In parallel, MaṉaChat provides an instructional conversational interface, powered by the meta llama/Llama-3.2-3B-Instruct model, to offer immediate stress-reduction strategies and mental health guidance. This dual approach not only enhances user engagement but also ensures timely intervention by coupling real-time analysis with supportive resources.
 
 ## MHRoberta (a Large Language Model for mental health analysis)
 
@@ -49,6 +48,9 @@ run the backend file in terminal
 ```bash
 python webapp_setup/chatbot.py
 ```
+## System Architecture
+![architecture drawio](https://github.com/user-attachments/assets/e54b82b2-c00f-4b75-8542-7e4737a2d0e9)
+
 ```mermaid
 sequenceDiagram
     actor User as 🧑‍💻 User
