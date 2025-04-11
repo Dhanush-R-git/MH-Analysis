@@ -214,4 +214,4 @@ async def chat(chat_request: ChatRequest):
         return JSONResponse(status_code=500, content={"error": error_message})
     
 if __name__ == "__main__":
-    uvicorn.run("chatbot:app", host="127.0.0.1", port=5000, reload=True)
+    uvicorn.run("chatbot:app", host="127.0.0.1", port=8000, reload=True)

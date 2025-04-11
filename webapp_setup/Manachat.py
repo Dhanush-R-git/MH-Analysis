@@ -1,7 +1,7 @@
 import os, sys
 import torch # type: ignore
 import logging
-from webapp_setup.error_logger import log_error
+from error_logger import log_error
 from dotenv import load_dotenv # type: ignore
 from transformers import AutoTokenizer, AutoModelForMaskedLM, AutoModelForCausalLM
 from huggingface_hub import InferenceClient # type: ignore

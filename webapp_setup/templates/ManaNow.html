@@ -148,21 +148,23 @@
     let currentStep = 0;
     let userAnswers = [];
     let cachedQuestions = [];
-
+  
     async function startAssessment() {
       document.getElementById('introSection').classList.add('hidden');
       document.getElementById('questionSection').classList.remove('hidden');
       await fetchQuestion();
     }
-
+  
     async function fetchQuestion() {
       try {
+        // IMPORTANT: Only send main responses (IDs starting with "q")
+        const mainAnswers = userAnswers.filter(answer => answer.id.startsWith("q"));
         const response = await fetch('/api/ManaNow', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userAnswer: null,
-            userAnswers: userAnswers
+            userAnswers: mainAnswers
           })
         });
         const data = await response.json();
@@ -178,21 +180,21 @@
         showError("Failed to load questions. Please check your connection.");
       }
     }
-
+  
     function updateQuestionUI(question) {
       document.getElementById('questionTitle').textContent = question.title;
       document.getElementById('questionText').textContent = question.text || "";
       document.getElementById('questionNumber').textContent = `Question ${question.number}/${question.total}`;
       const progress = (question.number / question.total) * 100;
       document.getElementById('progressBar').style.width = `${progress}%`;
-
+  
       const container = document.getElementById('answerContainer');
       container.innerHTML = "";
       // Clear follow-up container
       document.getElementById('followUpContainer').innerHTML = "";
-
+  
       // Render input based on question type
-      switch(question.type) {
+      switch (question.type) {
         case 'text':
           container.innerHTML = `
             <label for="textAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
@@ -219,7 +221,6 @@
             <label for="dateAnswer" class="block text-gray-700 font-medium mb-2">${question.text}</label>
             <input type="date" id="dateAnswer" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${question.placeholder || 'Select date'}" aria-label="Date Input">
           `;
-          // Optionally, you can enable flatpickr for better date UI.
           flatpickr("#dateAnswer", {});
           break;
         case 'number':
@@ -244,17 +245,6 @@
             `;
           }
           break;
-       /*case 'checkbox':
-          question.options.forEach(option => {
-            const div = document.createElement('div');
-            div.className = 'flex items-center p-3 rounded-lg hover:bg-teal-50 cursor-pointer border border-transparent transition-colors';
-            div.innerHTML = `
-              <input type="checkbox" name="${question.id}" value="${option}" class="form-checkbox h-5 w-5 text-teal-600" onchange="handleFollowUp(${JSON.stringify(question)}, '${option}')">
-              <label class="ml-3 text-gray-700">${option}</label>
-            `;
-            container.appendChild(div);
-          });
-          break; */
         case 'checkbox':
           container.innerHTML = `
             <div class="input-container">
@@ -263,10 +253,10 @@
                 ${question.options.map(option => `
                   <div class="checkbox--option">
                     <input type="checkbox" 
-                          name="${question.id}" 
-                          value="${option}" 
-                          class="form-checkbox h-5 w-5 text-teal-600"
-                          onchange="handleCheckboxFollowUp(${JSON.stringify(question)})">
+                           name="${question.id}" 
+                           value="${option}" 
+                           class="form-checkbox h-5 w-5 text-teal-600"
+                           onchange="handleCheckboxFollowUp(${JSON.stringify(question)})">
                     <label class="ml-3 text-gray-700">${option}</label>
                   </div>
                 `).join('')}
@@ -293,7 +283,7 @@
           container.innerHTML = `<p class="text-red-500">Unknown question type: ${question.type}</p>`;
       }
     }
-
+  
     function selectRadio(value, element) {
       document.querySelectorAll('#answerContainer div').forEach(div => {
         div.classList.remove('bg-teal-50', 'border-teal-200');
@@ -303,7 +293,7 @@
       const radio = element.querySelector('input');
       radio.checked = true;
     }
-
+  
     // Handle follow-up questions if defined for a selected option.
     function handleFollowUp(question, selectedOption) {
       const followUpContainer = document.getElementById('followUpContainer');
@@ -313,13 +303,11 @@
         question.follow_up[selectedOption].forEach(followUpQuestion => {
           const div = document.createElement('div');
           div.className = 'mt-4';
-
           if (followUpQuestion.type === 'text') {
             div.innerHTML = `
               <label for="${followUpQuestion.id}" class="block text-gray-700 font-medium mb-2">${followUpQuestion.title}</label>
               <textarea id="${followUpQuestion.id}" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${followUpQuestion.placeholder || 'Type your response...'}" aria-label="${followUpQuestion.title}"></textarea>
             `;
-          
           } else if (followUpQuestion.type === 'number' && followUpQuestion.unit_options) {
             div.innerHTML = `
               <label for="${followUpQuestion.id}" class="block text-gray-700 font-medium mb-2">${followUpQuestion.title}</label>
@@ -336,186 +324,105 @@
               <input type="number" id="${followUpQuestion.id}" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${followUpQuestion.placeholder || ''}" aria-label="${followUpQuestion.title}">
             `;
           }
-
-          const selectedOptions = Array.from(document.querySelectorAll(`input[name="${question.id}"]:checked`)).map(cb => cb.value);
-          selectedOptions.forEach(option => {
-            if (followUpQuestion.type === 'checkbox' ) {
-              let checkHtml = `<label class="block text-gray-700 font-medium mb-2">${followUpQuestion.title}</label><div class="flex flex-wrap gap-4">`;
-              followUpQuestion.options.forEach(opt => {
-                checkHtml += `
-                  <label class="flex items-center">
-                    <input type="checkbox" name="${followUpQuestion.id}" value="${opt}" class="form-checkbox text-teal-600" onchange="handleFollowUp(${JSON.stringify(followUpQuestion)})">
-                    <span class="ml-2 text-gray-700">${opt}</span>
-                  </label>
-                `;
-              });
-              checkHtml += "</div>";
-              div.innerHTML = checkHtml;
-            }
-          });
-
           followUpContainer.appendChild(div);
         });
       }
     }
-    /*
-    // Updated handleCheckboxFollowUp function
-    function handleCheckboxFollowUp(question) {
-      const followUpContainer = document.getElementById('followUpContainer');
-      followUpContainer.innerHTML = "";
-
-      // Get all checked checkboxes
-      const checkboxes = document.querySelectorAll(`input[name="${question.id}"]:checked`);
-      const selectedOptions = Array.from(checkboxes).map(cb => cb.value);
-
-      // Create a container for all follow-ups
-      const followUpWrapper = document.createElement('div');
-      followUpWrapper.className = 'follow-up-container pl-4 border-l-2 border-teal-200 mt-4';
-
-      selectedOptions.forEach(option => {
-        if (question.follow_up && question.follow_up[option]) {
-          question.follow_up[option].forEach(followUpQuestion => {
-            const div = document.createElement('div');
-            div.className = 'mt-4 pl-4 border-l-2 border-teal-200';
-            
-            if (followUpQuestion.type === 'text') {
-              div.innerHTML = `
-                <div class="input-container">
-                  <label class="input-label">${followUpQuestion.title}</label>
-                  <textarea class="text-input" 
-                            rows="2"
-                            data-parent-option="${option}"
-                            data-question-id="${followUpQuestion.id}"
-                            placeholder="${followUpQuestion.placeholder || ''}"
-                            aria-label="${followUpQuestion.title}"></textarea>
-                </div>
-              `;
-            }
-            else if (followUpQuestion.type === 'number') {
-              div.innerHTML = `
-                <label class="input-label">${followUpQuestion.title}</label>
-                <div class="flex gap-4">
-                  <input type="number" 
-                        class="text-input"
-                        placeholder="${followUpQuestion.placeholder || ''}"
-                        data-question-id="${followUpQuestion.id}">
-                  ${followUpQuestion.unit_options ? `
-                    <select class="unit-select">
-                      ${followUpQuestion.unit_options.map(unit => `
-                        <option value="${unit}">${unit}</option>
-                      `).join('')}
-                    </select>
-                  ` : ''}
-                </div>
-              `;
-            } 
-            
-            followUpWrapper.appendChild(div);
-          });
-        }
-      });
-
-      if (followUpWrapper.children.length > 0) {
-        followUpContainer.appendChild(followUpWrapper);
-      }
-    } */
-
-    /*function handleCheckboxFollowUp(question) {
-      const followUpContainer = document.getElementById('followUpContainer');
-      followUpContainer.innerHTML = ""; // Clear previous follow-up questions
-
-      const selectedOptions = Array.from(document.querySelectorAll(`input[name="${question.id}"]:checked`)).map(cb => cb.value);
-
-      selectedOptions.forEach(option => {
-        if (question.follow_up && question.follow_up[option]) {
-          question.follow_up[option].forEach(followUpQuestion => {
-            const div = document.createElement('div');
-            div.className = 'mt-4';
-
-            if (followUpQuestion.type === 'text') {
-              div.innerHTML = `
-                <label for="${followUpQuestion.id}" class="block text-gray-700 font-medium mb-2">${followUpQuestion.title}</label>
-                <textarea id="${followUpQuestion.id}" rows="3" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="${followUpQuestion.placeholder || 'Type your response...'}" aria-label="${followUpQuestion.title}"></textarea>
-              `;
-            }
-            followUpContainer.appendChild(div);
-          });
-        }
-      });
-    } */
-   
-    // Update handleNext to store complex answers
-    async function handleNext() {
-      const answer = getCurrentAnswer();
-      if (!answer || (answer.selections && answer.selections.length === 0)) {
-        showError("Please provide an answer before continuing");
-        return;
-      }
-      userAnswers.push({
-        id: `q${currentStep+1}`,
-        question: document.getElementById('questionTitle').textContent,
-        answer: answer
-      });
-      await fetchQuestion();
-    }
-
-    function handlePrevious() {
-      if (currentStep > 0) {
-        currentStep--;
-        const previousQuestion = cachedQuestions[currentStep];
-        userAnswers.pop(); // Remove the last answer
-        document.getElementById('followUpContainer').innerHTML = ""; // Clear follow-up container
-        updateQuestionUI(previousQuestion);
-      }
-    }
-    // Updated getCurrentAnswer to handle checkbox follow-ups
-    function getCurrentAnswer() {
+  
+    // Helper to retrieve the main answer from the primary answer container.
+    function getMainAnswer() {
       const radio = document.querySelector('input[name="answer"]:checked');
       if (radio) return radio.value;
-
+  
       const textarea = document.getElementById('textAnswer');
       if (textarea) return textarea.value.trim();
-
+  
       const dateInput = document.getElementById('dateAnswer');
       if (dateInput) return dateInput.value;
-
+  
       const numberInput = document.getElementById('numberAnswer');
       if (numberInput) {
         const unitSelect = document.getElementById(`${numberInput.id}_unit`);
         const unit = unitSelect ? unitSelect.value : "";
         return numberInput.value + (unit ? ` ${unit}` : "");
       }
-
+  
       const likert = document.querySelector('input[name="likert"]:checked');
       if (likert) {
         const extraText = document.getElementById('likertText') ? document.getElementById('likertText').value.trim() : "";
         return extraText ? `${likert.value} - ${extraText}` : likert.value;
       }
-
+  
       const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
       if (checkboxes.length > 0) {
-        const answers = {
-          main: Array.from(checkboxes).map(cb => cb.value),
-          details: {}
-        };
-        // Collect follow-up answers
-        document.querySelectorAll('[data-question-id]').forEach(element => {
-          const questionId = element.dataset.questionId;
-          const parentOption = element.dataset.parentOption;
-          if (element.tagName === 'TEXTAREA') {
-            //answers.followUps[questionId] = element.value.trim();
-            answer.details[parentOption] = answer.details[parentOption] || {};
-            answer.details[parentOption][questionId] = element.value.trim();
-          } /*else if (element.tagName === 'INPUT') {
-            const unit = element.parentElement.querySelector('select')?.value || '';
-            answers.followUps[questionId] = `${element.value} ${unit}`.trim();
-          }*/
-        });
-        return answers;
+        return Array.from(checkboxes).map(cb => cb.value).join(", ");
       }
+  
       return null;
     }
-
+  
+    // Helper to collect answers from follow-up container.
+    function getFollowUpAnswers() {
+      const followUpContainer = document.getElementById('followUpContainer');
+      const answers = [];
+      // Select all input, textarea, select elements with an id inside followUpContainer.
+      const elements = followUpContainer.querySelectorAll('input[id], textarea[id], select[id]');
+      elements.forEach(element => {
+        let value = "";
+        if (element.tagName.toLowerCase() === "input" || element.tagName.toLowerCase() === "textarea") {
+          value = element.value.trim();
+        } else if (element.tagName.toLowerCase() === "select") {
+          value = element.value;
+        }
+        if (value) {
+          answers.push({
+            id: element.id,
+            answer: value
+          });
+        }
+      });
+      return answers;
+    }
+  
+    // Update handleNext to store complex answers.  
+    // Only main answers (id starting with "q") determine the question flow.
+    async function handleNext() {
+      const mainAnswer = getMainAnswer();
+      if (!mainAnswer) {
+        showError("Please provide an answer before continuing");
+        return;
+      }
+      // Push the main answer with id "q{currentStep+1}"
+      userAnswers.push({
+        id: `q${currentStep+1}`,
+        question: document.getElementById('questionTitle').textContent,
+        answer: mainAnswer
+      });
+      // Append follow-up answers separately (they won't affect the count of main answers)
+      const followUpAnswers = getFollowUpAnswers();
+      followUpAnswers.forEach(ans => {
+        userAnswers.push(ans);
+      });
+      await fetchQuestion();
+    }
+  
+    function handlePrevious() {
+      if (currentStep > 0) {
+        currentStep--;
+        const previousQuestion = cachedQuestions[currentStep];
+        // Remove the last main answer and its corresponding follow-up answers
+        // (Assuming follow-up answers immediately follow the main answer in userAnswers)
+        // Remove until you find an answer with an id starting with "q"
+        while (userAnswers.length && !userAnswers[userAnswers.length - 1].id.startsWith("q")) {
+          userAnswers.pop();
+        }
+        // Remove the main answer
+        if (userAnswers.length) userAnswers.pop();
+        document.getElementById('followUpContainer').innerHTML = "";
+        updateQuestionUI(previousQuestion);
+      }
+    }
+  
     function showReport(data) {
       document.getElementById('questionSection').classList.add('hidden');
       document.getElementById('reportSection').classList.remove('hidden');
@@ -536,7 +443,7 @@
       }
       localStorage.setItem('assessmentReport', data.report);
     }
-
+  
     function saveReport() {
       const reportData = {
         content: document.getElementById('reportContent').innerHTML,
@@ -558,8 +465,7 @@
       savedReportsContainer.appendChild(reportElement);
       alert('Report saved successfully!');
     }
-    
-
+      
     function downloadSpecificReport(index) {
       const savedReports = JSON.parse(localStorage.getItem('savedReports')) || [];
       const report = savedReports[index];
@@ -576,7 +482,7 @@
       a.click();
       document.body.removeChild(a);
     }
-
+      
     function showError(message) {
       const errorDiv = document.createElement('div');
       errorDiv.className = 'p-3 bg-red-100 text-red-700 rounded-lg mb-4';
@@ -585,7 +491,7 @@
       container.prepend(errorDiv);
       setTimeout(() => errorDiv.remove(), 5000);
     }
-
   </script>
+  
 </body>
 </html>

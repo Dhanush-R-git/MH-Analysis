@@ -5,7 +5,7 @@ from huggingface_hub import InferenceClient  # type: ignore
 from dotenv import load_dotenv  # type: ignore
 from typing import List, Dict, Any
 import json
-from webapp_setup.error_logger import log_error
+from error_logger import log_error
 from fastapi.responses import JSONResponse  # type: ignore
 
 # Add the project root directory to the Python path
@@ -312,6 +312,10 @@ def convert_user_responses(user_responses_list: List[Dict]) -> Dict[str, Any]:
     """
     Convert a list of answer objects from the front end to a dictionary
     keyed by the original question id.
+
+    For main questions, the provided response IDs (e.g., "q1", "q2", …)
+    are mapped using the order of QUESTION_FLOW. For sub-questions (which
+    should already have their proper id), use the provided id.
     """
     result = {}
     main_index = 0
@@ -439,7 +443,6 @@ Guidelines:
 
         logger.info(f"Generated prompt:\n{prompt}")
         return prompt
-
     except Exception as e:
         error_message = f"Error building prompt: {str(e)}"
         logger.error(error_message)
