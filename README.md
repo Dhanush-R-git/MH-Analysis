@@ -1,14 +1,32 @@
 # Maṉa
+Maṉa is a web-based application designed to analyze mental health via social media interactions. The system leverages user-generated comments on posts and tweets to assess emotional well-being. By aggregating social media data through APIs or user uploads, Maṉa employs a fine-tuned RoBERTa model to perform sentiment analysis, classifying interactions as either positive or negative. When negative sentiments prevail, the system activates MaṉaNow—a dynamic questioning AI that conducts an in-depth mental health assessment through a series of targeted questions and ultimately generates a personalized report. In parallel, MaṉaChat provides an instructional conversational interface, powered by the meta llama/Llama-3.2-3B-Instruct model, to offer immediate stress-reduction strategies and mental health guidance. This dual approach not only enhances user engagement but also ensures timely intervention by coupling real-time analysis with supportive resources.
 
-This project focuses on leveraging machine learning and natural language processing (NLP) techniques to analyze mental health-related text data. It includes a fine-tuned version of the Roberta transformer model, named MHRoberta, specifically designed for mental health analysis tasks. The model is trained using the PEFT (Parameter-Efficient Fine-Tuning) method on a mental health dataset.
-
-## MHRoberta (a Large Language Model for mental health analysis)
+## MHRoberta (a Large Language Model for mental health analysis) (** in progress)
 
 We developed our own model called 'MHRoberta' is Mental Health Roberta model. It is pretrained Roberta transformer based model fine-tunned on Mental Health dataset by adopting PEFT method.
 
-### Key Features
+## Key Features
 
-- **MHRoberta Model**: A transformer-based model fine-tuned for mental health analysis tasks.
+### MaṉaChat:  
+A standard instructional chatbot that responds to user inquiries (e.g., “How can I reduce my stress levels?”) using the meta-llama/Llama-3.2-3B-Instruct model. 
+### MaṉaNow:  
+A questioning chatbot that is activated when negative sentiment or concerning patterns are detected. This mode uses the deepseek-ai/DeepSeek-R1 model to dynamically ask a series of assessment questions, and at the end, generate a final report with insights and supportive guidance. 
+### The user flow is as follows: 
+- **Landing Page**: 
+Users see a clear landing page with a “Get Started” button. 
+- **Project Overview Page**: 
+This page provides details about the project and offers two buttons:  
+o “Get Started with MaṉaChat” 
+o “Get Started with MaṉaNow” 
+- **Interactive Chat Interfaces**: 
+Depending on the chosen mode:  
+o MaṉaChat UI: for standard chat interactions. 
+o MaṉaNow UI: for guided mental health assessment (questionnaire) and final 
+report generation. 
+- **Data Collection & Analysis**: 
+The system also supports comment collection via APIs, allowing users to upload/download their comments for further analysis at Project Overview UI
+
+- MHRoberta Model: A transformer-based model fine-tuned for mental health analysis tasks.
 - **Chatbot Integration**: A FastAPI-powered chatbot that interacts with users, detects their mental state, and provides empathetic responses based on the detected state.
 - **Local and Cloud Inference**: Supports both local fallback models and cloud-based inference using Hugging Face's Inference API.
 - **Mental State Detection**: Automatically detects mental states from user input and tailors responses accordingly.
@@ -49,6 +67,10 @@ run the backend file in terminal
 ```bash
 python webapp_setup/chatbot.py
 ```
+## System Architecture
+![architecture drawio](https://github.com/user-attachments/assets/e54b82b2-c00f-4b75-8542-7e4737a2d0e9)
+
+## Sequence Diagram
 ```mermaid
 sequenceDiagram
     actor User as 🧑‍💻 User
@@ -80,6 +102,8 @@ sequenceDiagram
     User ->> MaṉaChat: Asks for guidance 💡
     MaṉaChat -->> User: Provides personalized mental health support 🤗
 ```
+
+## Flow chart
 ```mermaid
 graph TD;
     A[User Visits Homepage] -->|Selects MaṉaChat| B(MaṉaChat);
