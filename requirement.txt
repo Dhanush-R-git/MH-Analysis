@@ -10,3 +10,5 @@ scipy
 pandas
 reportlab
 openpyxl
+bs4
+playwright

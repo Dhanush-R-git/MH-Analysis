@@ -45,30 +45,24 @@
       z-index: 0; /* Ensures it stays in the background */
       pointer-events: none; /* Prevents interaction with the logo */
     }
-
-    /* Top-left logo */
-    .logo-top-left {
-      top: 10%; /* Adjust to fit within the body area */
-      left: 5%; /* Adjust to fit within the body area */
-      transform: rotate(-9deg); /* Rotates the logo slightly */
-      width: 200px; /* Adjust size to fit */
-      max-width: 30vw; /* Ensure responsiveness */
-    }
-
-    /* Bottom-right logo */
-    .logo-bottom-right {
-      bottom: 10%; /* Adjust to fit within the body area */
-      right: 5%; /* Adjust to fit within the body area */
-      transform: rotate(160deg); /* Rotates the logo slightly */
-      width: 200px; /* Adjust size to fit */
+    /* Centered logo styling */
+    .logo-center {
+      position: absolute;
+      top: 50%; /* Center vertically */
+      left: 50%; /* Center horizontally */
+      transform: translate(-50%, -50%); /* Adjust for the logo's size */
+      opacity: 0.3; /* Makes the image translucent */
+      z-index: 0; /* Ensures it stays in the background */
+      pointer-events: none; /* Prevents interaction with the logo */
+      width: 400px; /* Adjust size to fit */
       max-width: 30vw; /* Ensure responsiveness */
     }
   </style>
 </head>
+
 <body class="hero-bg text-gray-800 font-sans">
     <!-- Translucent logos -->
-  <img src="/static/assets/logo.png" alt="Maṉa Logo" class="translucent-logo logo-top-left" />
-  <img src="/static/assets/logo.png" alt="Maṉa Logo" class="translucent-logo logo-bottom-right" />
+  <img src="/static/assets/logo.png" alt="Maṉa Logo" class="translucent-logo logo-center" />
   <div class="page-wrapper">
     <!-- Top bar with contact info -->
     <div class="bg-gray-100 text-sm py-2">
@@ -107,6 +101,7 @@
           <!--<a href="/Research" class="text-gray-600 hover:text-gray-900" aria-label="Research">Research</a>-->
           <a href="/Research#portfolio" class="text-gray-600 hover:text-gray-900" aria-label="Portfolio">Portfolio</a>
           <a href="/Research#team" class="text-gray-600 hover:text-gray-900" aria-label="Team">Team</a>
+          <a href="/tesseract" class="text-gray-600 hover:text-gray-900" aria-label="Tesseract">Tesseract</a>
         </div>
       </nav>
     </header>
@@ -140,7 +135,7 @@
     </section>
 
     <!-- Footer fixed at bottom -->
-    <footer class="bg-black-200 py-4" role="contentinfo" aria-label="Site Footer">
+    <footer class="bg-white/90 shadow-md sticky top-0 z-50" role="contentinfo" aria-label="Site Footer">
       <div class="container mx-auto text-center text-gray-600">
         &copy; 2025 Maṉa. All rights reserved.
       </div>

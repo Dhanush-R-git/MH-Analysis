@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>4D Tesseract with Logo Inside</title>
+  <style>
+    /* Basic reset and styling */
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Include Three.js from a CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <script>
+    // -----------------------------
+    // 1. Create Scene, Camera, Renderer
+    // -----------------------------
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    camera.position.set(0, 0, 6);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // -----------------------------
+    // 2. Define 4D Tesseract Data
+    // -----------------------------
+    // Generate 16 vertices in 4D: each coordinate is ±1
+    function generateVertices4D() {
+      const vertices = [];
+      for (let i = 0; i < 16; i++) {
+        let v = [];
+        for (let j = 0; j < 4; j++) {
+          // Use bit j of i to determine the sign (+1 or -1)
+          v.push(((i >> j) & 1) ? 1 : -1);
+        }
+        vertices.push(v);
+      }
+      return vertices;
+    }
+    const vertices4D_orig = generateVertices4D();
+
+    // Generate edges: two vertices differ in exactly one coordinate
+    function generateEdges(vertices) {
+      const edges = [];
+      const n = vertices.length;
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          let diff = 0;
+          for (let k = 0; k < 4; k++) {
+            if (vertices[i][k] !== vertices[j][k]) diff++;
+          }
+          if (diff === 1) {
+            edges.push([i, j]);
+          }
+        }
+      }
+      return edges;
+    }
+    const edges = generateEdges(vertices4D_orig);
+
+    // -----------------------------
+    // 3. 4D Rotation & Projection
+    // -----------------------------
+    // Build a 4x4 rotation matrix in the WX and YZ planes
+    function rotationMatrix4D(angleWX, angleYZ) {
+      let m = [
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+      ];
+      // WX plane (indices 0 & 1)
+      const cosWX = Math.cos(angleWX),
+            sinWX = Math.sin(angleWX);
+      m[0][0] = cosWX;   m[0][1] = -sinWX;
+      m[1][0] = sinWX;   m[1][1] = cosWX;
+      // YZ plane (indices 2 & 3)
+      const cosYZ = Math.cos(angleYZ),
+            sinYZ = Math.sin(angleYZ);
+      m[2][2] = cosYZ;   m[2][3] = -sinYZ;
+      m[3][2] = sinYZ;   m[3][3] = cosYZ;
+      return m;
+    }
+
+    // Multiply a 4D vector by a 4x4 matrix
+    function multiplyMatrixVector4D(m, v) {
+      let result = [0, 0, 0, 0];
+      for (let i = 0; i < 4; i++) {
+        let sum = 0;
+        for (let j = 0; j < 4; j++) {
+          sum += m[i][j] * v[j];
+        }
+        result[i] = sum;
+      }
+      return result;
+    }
+
+    // Project a 4D point to 3D with perspective
+    function project4Dto3D(v4, perspective = 3) {
+      const w = v4[3];
+      const factor = perspective / (perspective - w);
+      return [
+        v4[0] * factor,
+        v4[1] * factor,
+        v4[2] * factor,
+      ];
+    }
+
+    // -----------------------------
+    // 4. Build Tesseract as a LineSegments Object
+    // -----------------------------
+    // Each edge consists of 2 vertices (each with x,y,z)
+    const positions = new Float32Array(edges.length * 2 * 3);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+    const tesseractLines = new THREE.LineSegments(geometry, lineMaterial);
+    scene.add(tesseractLines);
+
+    // -----------------------------
+    // 5. Add the Logo as a Plane Mesh Inside the Tesseract
+    // -----------------------------
+    const textureLoader = new THREE.TextureLoader();
+    const logoTexture = textureLoader.load(
+      "./static/assets/logo.png", // Ensure the path is correct
+      () => { console.log("Logo texture loaded successfully."); },
+      undefined,
+      (err) => { console.error("Error loading logo texture.", err); }
+    );
+
+    const planeGeo = new THREE.PlaneGeometry(1, 1);
+    const planeMat = new THREE.MeshBasicMaterial({
+      map: logoTexture,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthTest: false, // Disable depth testing so the logo appears on top of the lines
+    });
+    const logoPlane = new THREE.Mesh(planeGeo, planeMat);
+
+    // Position the logo in the center of the tesseract
+    logoPlane.position.set(0, 0, 0);
+    // Scale the plane to fit nicely inside the cube
+    logoPlane.scale.set(0.5, 0.5, 0.5);
+    // Set a higher render order so it is drawn after the wireframe
+    logoPlane.renderOrder = 1;
+
+    // Attach the logo mesh to the tesseractLines so that it rotates together
+    tesseractLines.add(logoPlane);
+
+    // -----------------------------
+    // 6. Animation Loop
+    // -----------------------------
+    let angle = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      angle += 0.01;
+
+      // 4D rotation angles
+      const angleWX = angle;
+      const angleYZ = angle * 1.5;
+      const rot4D = rotationMatrix4D(angleWX, angleYZ);
+
+      // Rotate and project all 4D vertices
+      const rotated4D = vertices4D_orig.map(v => multiplyMatrixVector4D(rot4D, v));
+      const projected3D = rotated4D.map(v4 => project4Dto3D(v4, 3));
+
+      // Update the tesseract line geometry positions for each edge
+      let posAttr = geometry.attributes.position.array;
+      let idx = 0;
+      for (let i = 0; i < edges.length; i++) {
+        const [a, b] = edges[i];
+        const pa = projected3D[a];
+        const pb = projected3D[b];
+        posAttr[idx++] = pa[0];
+        posAttr[idx++] = pa[1];
+        posAttr[idx++] = pa[2];
+        posAttr[idx++] = pb[0];
+        posAttr[idx++] = pb[1];
+        posAttr[idx++] = pb[2];
+      }
+      geometry.attributes.position.needsUpdate = true;
+
+      // Calculate the size of a single square
+      const firstEdge = edges[0]; // Use the first edge to calculate the size of a square
+      const vertexA = projected3D[firstEdge[0]];
+      const vertexB = projected3D[firstEdge[1]];
+      const squareSize = calculateDistance3D(vertexA, vertexB);
+
+      // Dynamically scale the logo to fit inside one square
+      const logoScaleFactor = 0.8; // Adjust this factor to leave some padding
+      logoPlane.scale.set(
+        squareSize * logoScaleFactor,
+        squareSize * logoScaleFactor,
+        squareSize * logoScaleFactor
+      );
+
+      // Apply a slow additional rotation to the entire tesseract
+      tesseractLines.rotation.x += 0.005;
+      tesseractLines.rotation.y += 0.005;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // -----------------------------
+    // 7. Handle Window Resize
+    // -----------------------------
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // -----------------------------
+    // 8. Calculate Distance Between Two 3D Points
+    // -----------------------------
+    function calculateDistance3D(pointA, pointB) {
+      return Math.sqrt(
+        Math.pow(pointA[0] - pointB[0], 2) +
+        Math.pow(pointA[1] - pointB[1], 2) +
+        Math.pow(pointA[2] - pointB[2], 2)
+      );
+    }
+  </script>
+</body>
+</html>

@@ -56,6 +56,14 @@ async def overview_page(request: Request):
 async def overview_page(request: Request):
     return templates.TemplateResponse("Overview.html", {"request": request})
 
+@app.get("/tesseract", response_class=HTMLResponse)
+async def about_page(request: Request):
+    return templates.TemplateResponse("tesseract.html", {"request": request})
+
+@app.get("/web_scrapper", response_class=HTMLResponse)
+async def web_page(request: Request):
+    return templates.TemplateResponse("web_scrapper.html", {"request": request})
+
 # New endpoint to process file uploads for sentiment analysis
 @app.post("/api/upload-comments")
 async def upload_comments(file: UploadFile = File(...)):
