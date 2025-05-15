@@ -5,31 +5,44 @@ Maṉa is a web-based application designed to analyze mental health via social m
 
 We developed our own model called 'MHRoberta' is Mental Health Roberta model. It is pretrained Roberta transformer based model fine-tunned on Mental Health dataset by adopting PEFT method.
 
-## Key Features
-
+## 🧩 Features
+---
 ### MaṉaChat:  
 A standard instructional chatbot that responds to user inquiries (e.g., “How can I reduce my stress levels?”) using the meta-llama/Llama-3.2-3B-Instruct model. 
 ### MaṉaNow:  
 A questioning chatbot that is activated when negative sentiment or concerning patterns are detected. This mode uses the deepseek-ai/DeepSeek-R1 model to dynamically ask a series of assessment questions, and at the end, generate a final report with insights and supportive guidance. 
-### The user flow is as follows: 
-- **Landing Page**: 
-Users see a clear landing page with a “Get Started” button. 
-- **Project Overview Page**: 
-This page provides details about the project and offers two buttons:  
-o “Get Started with MaṉaChat” 
-o “Get Started with MaṉaNow” 
-- **Interactive Chat Interfaces**: 
-Depending on the chosen mode:  
-o MaṉaChat UI: for standard chat interactions. 
-o MaṉaNow UI: for guided mental health assessment (questionnaire) and final 
-report generation. 
-- **Data Collection & Analysis**: 
-The system also supports comment collection via APIs, allowing users to upload/download their comments for further analysis at Project Overview UI
 
-- MHRoberta Model: A transformer-based model fine-tuned for mental health analysis tasks.
+---
+
+| User flows                  | Description                                                                                 |
+|-----------------------------|---------------------------------------------------------------------------------------------|
+| **Landing Page**            | Users see a clear landing page with a “Get Started” button.                                |
+| **Project Overview Page**   | This page provides details about the project and offers two buttons:                       |
+|                             | - “Get Started with MaṉaChat”                                                              |
+|                             | - “Get Started with MaṉaNow”                                                               |
+| **Interactive Chat Interfaces** | Depending on the chosen mode:                                                          |
+|                             | - **MaṉaChat UI**: For standard chat interactions.                                         |
+|                             | - **MaṉaNow UI**: For guided mental health assessment (questionnaire) and final report generation. |
+| **Data Collection & Analysis** | The system supports comment collection via APIs, allowing users to upload/download their comments for further analysis at the Project Overview UI. |
+
+---
+- **MHRoberta Model**: A transformer-based model fine-tuned for mental health analysis tasks.
 - **Chatbot Integration**: A FastAPI-powered chatbot that interacts with users, detects their mental state, and provides empathetic responses based on the detected state.
 - **Local and Cloud Inference**: Supports both local fallback models and cloud-based inference using Hugging Face's Inference API.
 - **Mental State Detection**: Automatically detects mental states from user input and tailors responses accordingly.
+---
+
+
+
+<details>
+<summary>View Installation Steps</summary>
+
+```bash
+conda create -n env python=3.13.2
+conda activate env
+pip install -r requirements.txt
+```
+</details>
 
 ## create an virtual python environment
 
