@@ -6,8 +6,6 @@ title: NIMH_Caring
 
 # Caring for Your Mental Health
 
-Esta página también está disponible en español.
-
 ## Overview
 
 Mental health includes emotional, psychological, and social well-being. It is more than the absence of a mental illness—it’s essential to your overall health and quality of life. Self-care can play a role in maintaining your mental health and help support your treatment and recovery if you have a mental illness.
@@ -89,7 +87,3 @@ More
 - CDC: Emotional Well-Being: CDC provides information on how to cope with stress and promote social connectedness.
 
 - SAMHSA: How to Cope: SAMHSA offers tips for taking care of your well-being and connecting with others for support.
-
-Last Reviewed:December 2024
-
-Unless otherwise specified, the information on our website and in our publications is in the public domain and may be reused or copied without permission. However, you may not reuse or copy images. Pleasecite the National Institute of Mental Healthas the source.Read our copyright policyto learn more about our guidelines for reusing NIMH content.

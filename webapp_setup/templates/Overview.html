@@ -18,9 +18,22 @@
     .hidden {
       display: none;
     }
+    /* Centered logo styling */
+    .logo-center {
+      position: absolute;
+      top: 50%; /* Center vertically */
+      left: 50%; /* Center horizontally */
+      transform: translate(-50%, -50%); /* Adjust for the logo's size */
+      opacity: 0.3; /* Makes the image translucent */
+      z-index: 0; /* Ensures it stays in the background */
+      pointer-events: none; /* Prevents interaction with the logo */
+      width: 400px; /* Adjust size to fit */
+      max-width: 30vw; /* Ensure responsiveness */
+    }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
+  <!--<img src="/static/assets/logo_2.png" alt="Maṉa Logo" class="translucent-logo logo-center" />-->
   <!-- Navigation -->
   <nav class="bg-white shadow sticky top-0 z-50" role="navigation" aria-label="Main Navigation">
     <div class="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -35,7 +48,7 @@
 
   <!-- Main Content -->
   <section class="mb-10 content-container p-6 rounded-lg shadow-md animate__animated animate__fadeIn" aria-label="Maṉa Services">
-    <h1 class="text-4xl font-bold text-blue-600 text-center mb-8">Welcome to Maṉa - மனம் அமைதியாக இருக்கிறது</h1>
+    <h1 class="text-4xl font-bold text-blue-600 text-center mb-8">Welcome to Maṉa - The mind is at peace</h1>
     <p class="text-lg text-gray-700 max-w-3xl mx-auto text-center mb-12">
       Maṉa is a web-based application for mental health analysis via social media.
       Our system uses advanced NLP models to analyze your social media comments and offers personalized guidance.
@@ -44,7 +57,7 @@
     <!-- Platform Descriptions Box -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12" aria-label="Platform Descriptions">
       <!-- ManaChat Box -->
-      <div class="bg-white p-6 rounded-lg shadow-md items-center content-box">
+      <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
         <div class="mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M2 3h20v2H2V3zm0 4h20v2H2V7zm0 4h14v2H2v-2zm0 4h20v2H2v-2z"/>

@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 # Externalized configuration via environment variables
 try:
     LOCAL_MODEL_NAME = os.getenv("LOCAL_MODEL_NAME", "meta-llama/Llama-3.2-3B-Instruct")
-    MENTAL_MODEL_NAME = os.getenv("MENTAL_MODEL_NAME", "mental/mental-roberta-base")
+    #MENTAL_MODEL_NAME = os.getenv("MENTAL_MODEL_NAME", "mentall/mental-roberta-base")
+    MENTAL_MODEL_NAME = os.getenv("MENTAL_MODEL_NAME", "cardiffnlp/twitter-roberta-base-sentiment-latest")
     LOCAL_MAX_NEW_TOKENS = int(os.getenv("LOCAL_MAX_NEW_TOKENS", 100))
     INFERENCE_MAX_NEW_TOKENS = int(os.getenv("INFERENCE_MAX_NEW_TOKENS", 400))
     LOCAL_TOP_K = int(os.getenv("LOCAL_TOP_K", 50))

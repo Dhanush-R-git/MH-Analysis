@@ -16,17 +16,12 @@ title: Cleveland_Depression
 
 /
 
-Depression
-
-Advertisement
-
-Advertisement
 
 # Depression
 
 Depression is a common mental health condition that causes a persistent feeling of sadness and changes in how you think, sleep, eat and act. There are several different types. Depression is treatable — usually with talk therapy, medication or both. Seeking medical help as soon as you have symptoms is essential.
 
-Advertisement
+
 
 Cleveland Clinic is a non-profit academic medical center. Advertising on our site helps support our mission. We do not endorse non-Cleveland Clinic products or services.Policy
 
@@ -38,17 +33,6 @@ Care at Cleveland Clinic
 
 [Make an Appointment](https://my.clevelandclinic.org/webappointment)
 
-Advertisement
-
-Advertisement
-
-Advertisement
-
-Advertisement
-
-Contents
-
-Arrow Down
 
 [Overview](#overview)
 
@@ -72,7 +56,6 @@ Arrow Down
 
 Depression is amood disorderthat causes a persistent feeling of sadness and loss of interest in things and activities you once enjoyed. It can also cause difficulty with thinking, memory, eating andsleeping.
 
-Advertisement
 
 Cleveland Clinic is a non-profit academic medical center. Advertising on our site helps support our mission. We do not endorse non-Cleveland Clinic products or services.Policy
 
@@ -95,8 +78,6 @@ The American Psychiatric Association’sDiagnostic Statistical Manual of Mental 
 - Premenstrual dysphoric disorder (PMDD): With PMDD, you havepremenstrual syndrome(PMS) symptoms along with mood symptoms, such as extreme irritability, anxiety or depression. These symptoms improve within a few days after yourperiodstarts, but they can be severe enough to interfere with your life.
 
 - Depressive disorder due to another medical condition: Many medical conditions can create changes in your body that cause depression. Examples includehypothyroidism,heart disease,Parkinson’s diseaseand cancer. If you’re able to treat the underlying condition, the depression usually improves as well.
-
-Advertisement
 
 There are also specific forms of major depressive disorder, including:
 
@@ -162,8 +143,6 @@ The symptoms of depression can vary slightly depending on the type and can range
 
 - Having thoughts of self-harm or suicide.
 
-Advertisement
-
 If you or a loved one are thinking about suicide, dial 988 on your phone to reach the Suicide and Crisis Lifeline. Someone will be available to help you 24/7.
 
 ## Causes
@@ -188,8 +167,6 @@ Researchers don’t know the exact cause of depression. They think that several 
 
 Healthcare providers diagnose depression based on a thorough understanding of your symptoms, medical history and mental health history. They may diagnose you with a specific type of depression, such as seasonal affective disorder or postpartum depression, based on the context of your symptoms.
 
-Advertisement
-
 To receive a diagnosis of depression, you must have five depression symptoms every day, nearly all day, for at least two weeks.
 
 Your provider may order medical tests, such as blood tests, to see if any underlying medical conditions are causing your depressive symptoms.
@@ -210,7 +187,6 @@ Treatment options include:
 
 - Brain stimulation therapy: Brain stimulation therapy can help people who have severe depression or depression with psychosis. Types of brain stimulation therapy includeelectroconvulsive therapy (ECT),transcranial magnetic stimulation (TMS)andvagus nerve stimulation (VNS).
 
-Advertisement
 
 There are also things you can do at home to help improve depression symptoms, including:
 
@@ -303,12 +279,6 @@ Last reviewed on 01/13/2023.
 Learn more about theHealth Libraryand oureditorial process.
 
 #### References
-
-Advertisement
-
-Advertisement
-
-Ad
 
 Appointments
 

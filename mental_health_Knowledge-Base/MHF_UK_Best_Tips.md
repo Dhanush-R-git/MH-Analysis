@@ -30,8 +30,6 @@ Printed copies of this publication are available to purchase in our online shop.
 
 [Order now](https://shop.mentalhealth.org.uk/products/our-best-mental-health-tips)
 
-Load video
-
 Get close to nature: best mental health tips series
 
 ## 1. Get closer to nature
@@ -74,14 +72,6 @@ For more suggestions, try thisguide to sleep and mental health. It includes info
 
 [More tips](/explore-mental-health/blogs/ten-top-tips-good-sleep)
 
-Load video
-
-Get more from sleep: best mental health tips series
-
-Load video
-
-Keep moving: best mental health tips series
-
 ## 3. Keep moving
 
 Our bodies and minds are connected, so looking after ourselves physically also helps us prevent problems with our mental health (it works the other way around, too).
@@ -108,13 +98,6 @@ Food can also get mixed up with our feelings. Some people over-eat or under-eat 
 
 [More tips](/explore-mental-health/a-z-topics/diet-and-mental-health)
 
-Load video
-
-Eat healthy food: best mental health tips series
-
-Load video
-
-Be kind: best mental health tips series
 
 ## 5. Be kind and help create a better world
 
@@ -145,14 +128,6 @@ It can help to notice these thoughts and try out new ones, such as “I can chan
 Life can feel more interesting, lively and rewarding when we are open to trying new experiences and experimenting with how we do things.
 
 It could be as simple as what we have for breakfast or the route we walk with the dog. It could also need some planning, like an adventure holiday. We might find a new place that it turns out we love, discover a talent we didn’t know we had or meet someone new and important.
-
-Load video
-
-Be curious: best mental health tips series
-
-Load video
-
-Plan things to look forward to: best mental health tips series
 
 ## 7. Plan things to look forward to
 
